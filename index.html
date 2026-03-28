@@ -3,18 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard RH — Grupo Sierra</title>
+<title>Sierra People — Dashboard Premium</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  /* Estilos base del Dashboard original */
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
     --bg:#0d0f14;--surface:#161922;--surface2:#1e2230;
     --border:rgba(255,255,255,0.07);
     --accent:#6c63ff;--accent2:#00d4aa;--accent3:#ff6b6b;--accent4:#ffd166;
     --text:#e8eaf2;--muted:#7c82a0;
-    --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--radius:14px;
+    --font:'DM Sans',sans-serif;--radius:14px;
   }
   body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;overflow-x:hidden}
   .shell{display:flex;min-height:100vh}
@@ -29,79 +28,76 @@
   .nav-item:hover{background:var(--surface2);color:var(--text)}
   .nav-item.active{background:rgba(108,99,255,.15);color:var(--accent)}
 
-  /* Main & Topbar */
+  /* Topbar */
   .main{flex:1;overflow:auto}
-  .topbar{padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:100;gap:16px}
+  .topbar{padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:100}
   .page-title{font-size:18px;font-weight:600}
-  .page-subtitle{font-size:12px;color:var(--muted);margin-top:2px}
-  .btn-refresh{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:6px 14px;border-radius:8px;cursor:pointer}
+  .page-subtitle{font-size:12px;color:var(--muted)}
+  .btn-refresh{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:12px;padding:6px 14px;border-radius:8px;cursor:pointer}
   .content{padding:28px 32px}
 
   /* KPIs */
   .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
-  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;border-top:2px solid var(--accent)}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;border-top:2px solid var(--accent)}
   .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
-  .kpi-value{font-size:26px;font-weight:600;line-height:1}
+  .kpi-value{font-size:24px;font-weight:600}
 
-  /* Charts & Tables */
+  /* Tables & Charts */
   .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
   .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
   .chart-wrap{position:relative;height:220px}
   .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:28px}
   table{width:100%;border-collapse:collapse}
-  th{padding:12px 18px;font-size:11px;text-transform:uppercase;color:var(--muted);text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer}
+  th{padding:12px 18px;font-size:11px;text-transform:uppercase;color:var(--muted);text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer; transition: 0.2s}
+  th:hover{color:var(--text); background:var(--surface)}
   td{padding:12px 18px;font-size:13px;border-bottom:1px solid var(--border)}
-  .area-pill{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
-  .clickable-cell{cursor:pointer; transition: color 0.2s;}
-  .clickable-cell:hover{color:var(--accent2);}
+  .clickable-cell{cursor:pointer; font-weight: 500;}
+  .clickable-cell:hover{color:var(--accent2); text-decoration: underline;}
 
-  /* Config */
   #config-panel{background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:20px;margin-bottom:20px;display:none}
-  .search-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;outline:none}
+  .search-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;outline:none;font-size:12px}
 </style>
 </head>
 <body>
 <div class="shell">
   <aside class="sidebar">
-    <div class="logo"><div class="logo-icon">👥</div><div class="logo-text">PeopleOS</div></div>
+    <div class="logo"><div class="logo-icon">👥</div><div class="logo-text">Sierra People</div></div>
     <div class="nav-section">
       <div class="nav-item active" onclick="showPage('dashboard', this)">📊 Dashboard</div>
       <div class="nav-item" onclick="showPage('nomina', this)">💰 Nómina Agrupada</div>
     </div>
-    <div class="nav-section" style="margin-top:auto"><div class="nav-item" onclick="toggleConfig()">⚙️ Configurar Sheet</div></div>
+    <div class="nav-section" style="margin-top:auto"><div class="nav-item" onclick="toggleConfig()">⚙️ Configurar</div></div>
   </aside>
 
   <main class="main">
     <div class="topbar">
-      <div><div class="page-title" id="main-title">Dashboard de RH</div><div class="page-subtitle" id="topbar-sub">Cargando datos...</div></div>
-      <div class="topbar-right">
-        <button class="btn-refresh" onclick="loadSheet()">↻ Sincronizar</button>
-      </div>
+      <div><div class="page-title" id="main-title">Dashboard General</div><div class="page-subtitle" id="topbar-sub">Sincronizando datos...</div></div>
+      <button class="btn-refresh" onclick="loadSheet()">↻ Actualizar</button>
     </div>
 
     <div class="content">
       <div id="config-panel">
          <input type="text" id="sheet-url" class="search-input" style="width:70%" placeholder="URL CSV de Google Sheets">
-         <button class="btn-refresh" onclick="loadSheet()" style="background:var(--accent); color:white">Conectar</button>
+         <button class="btn-refresh" onclick="loadSheet()" style="background:var(--accent)">Conectar</button>
       </div>
 
       <div id="page-dashboard" class="content-page">
         <div class="kpi-grid">
-          <div class="kpi-card" style="border-color:var(--accent)"><div class="kpi-label">Activos</div><div class="kpi-value" id="k-activos">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Activos</div><div class="kpi-value" id="k-activos">0</div></div>
           <div class="kpi-card" style="border-color:var(--accent2)"><div class="kpi-label">Centros CDN</div><div class="kpi-value" id="k-cdns">0</div></div>
           <div class="kpi-card" style="border-color:var(--accent4)"><div class="kpi-label">Nómina Est.</div><div class="kpi-value" id="k-nomina">$0</div></div>
-          <div class="kpi-card" style="border-color:#4dabf7"><div class="kpi-label">Sal. Diario Prom.</div><div class="kpi-value" id="k-sal">$0</div></div>
+          <div class="kpi-card" style="border-color:#4dabf7"><div class="kpi-label">Sueldo Prom.</div><div class="kpi-value" id="k-sal">$0</div></div>
           <div class="kpi-card" style="border-color:#ff9f43"><div class="kpi-label">Antigüedad Prom.</div><div class="kpi-value" id="k-ant">0 a</div></div>
           <div class="kpi-card" style="border-color:var(--accent3)"><div class="kpi-label">Histórico</div><div class="kpi-value" id="k-hist">0</div></div>
         </div>
 
         <div class="charts-row">
           <div class="chart-card">
-            <div class="kpi-label">Histograma de Bajas (Comparativo Anual)</div>
+            <div class="kpi-label">Bajas (Histórico Mensual)</div>
             <div class="chart-wrap"><canvas id="bajasChart"></canvas></div>
           </div>
           <div class="chart-card">
-            <div class="kpi-label">Distribución por Áreas</div>
+            <div class="kpi-label">Distribución Áreas</div>
             <div class="chart-wrap"><canvas id="areaChart"></canvas></div>
           </div>
         </div>
@@ -109,18 +105,16 @@
         <div class="table-card">
           <div style="padding:16px; display:flex; gap:10px">
             <input type="text" id="searchInput" class="search-input" placeholder="Buscar empleado..." oninput="filterTable()" style="width:300px">
-            <span id="countBadge" style="font-size:12px; color:var(--muted); align-self:center"></span>
           </div>
           <table>
             <thead>
               <tr>
-                <th onclick="sortTable('nombre')">Empleado ↕</th>
-                <th onclick="sortTable('area')">Área ↕</th>
-                <th onclick="sortTable('puesto')">Puesto ↕</th>
-                <th onclick="sortTable('cdn')">CDN ↕</th>
-                <th onclick="sortTable('estado')">Estado ↕</th>
-                <th onclick="sortTable('antiguedad')">Antigüedad ↕</th>
-                <th onclick="sortTable('sal_mensual')">Sueldo ↕</th>
+                <th onclick="sortMain('nombre')">Empleado ↕</th>
+                <th onclick="sortMain('area')">Área ↕</th>
+                <th onclick="sortMain('puesto')">Puesto ↕</th>
+                <th onclick="sortMain('cdn')">CDN ↕</th>
+                <th onclick="sortMain('antiguedad')">Antigüedad ↕</th>
+                <th onclick="sortMain('sal_mensual')">Sueldo ↕</th>
               </tr>
             </thead>
             <tbody id="empTable"></tbody>
@@ -130,42 +124,58 @@
 
       <div id="page-nomina" class="content-page" style="display:none">
         <div class="table-card">
-          <div style="padding:16px; display:flex; justify-content:space-between">
-            <div class="page-title">Análisis de Nómina Agrupada</div>
+          <div style="padding:20px; display:flex; justify-content:space-between; align-items:center">
+            <h3>Estructura Salarial Agrupada</h3>
             <select id="groupSelector" class="search-input" onchange="renderNomina()">
-              <option value="puesto">Agrupar por Puesto</option>
-              <option value="area">Agrupar por Área</option>
-              <option value="cdn">Agrupar por CDN</option>
+              <option value="puesto">Por Puesto</option>
+              <option value="area">Por Área</option>
+              <option value="cdn">Por CDN</option>
             </select>
           </div>
           <table>
             <thead>
-              <tr><th>Categoría</th><th>Colaboradores</th><th>Sueldo Promedio</th><th>Costo Mensual</th></tr>
+              <tr>
+                <th onclick="sortNomina('categoria')">Categoría ↕</th>
+                <th onclick="sortNomina('n')">Personal ↕</th>
+                <th onclick="sortNomina('promedio')">Sueldo Promedio ↕</th>
+                <th onclick="sortNomina('sum')">Total Mensual ↕</th>
+              </tr>
             </thead>
             <tbody id="nominaBody"></tbody>
           </table>
         </div>
       </div>
-
     </div>
   </main>
 </div>
 
 <script>
-let allEmployees = [], filtered = [], currentSort = { key: 'nombre', dir: 'asc' };
+let allEmployees = [], filtered = [], nominaData = [];
+let sortState = { key: '', dir: 'asc' };
 let charts = {};
 
-function showPage(pageId, el) {
-  document.querySelectorAll('.content-page').forEach(p => p.style.display = 'none');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + pageId).style.display = 'block';
+function showPage(p, el) {
+  document.querySelectorAll('.content-page').forEach(pg => pg.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(ni => ni.classList.remove('active'));
+  document.getElementById('page-' + p).style.display = 'block';
   el.classList.add('active');
-  if(pageId === 'nomina') renderNomina();
+  if(p === 'nomina') renderNomina();
 }
 
 function toggleConfig() {
-  const p = document.getElementById('config-panel');
-  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  const cp = document.getElementById('config-panel');
+  cp.style.display = cp.style.display === 'none' ? 'block' : 'none';
+}
+
+function parseDate(dateStr) {
+    if (!dateStr) return null;
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+        // Asume DD/MM/YYYY
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+    }
+    const d = new Date(dateStr);
+    return isNaN(d) ? null : d;
 }
 
 async function loadSheet() {
@@ -177,25 +187,32 @@ async function loadSheet() {
     const res = await fetch(url);
     const text = await res.text();
     const rows = parseCSV(text);
+    const ahora = new Date();
     
     allEmployees = rows.map(r => {
+      const estatus = r['Estatus empleado'] || 'A';
       const salDiario = parseFloat(r['Salario diario'] || 0) || 0;
+      const fAlta = parseDate(r['Fecha de alta']);
+      const fBajaRaw = parseDate(r['Fecha de baja']);
+      
       let ant = 0;
-      if(r['Fecha de alta']) {
-        const [d,m,y] = r['Fecha de alta'].split('/');
-        ant = ((new Date() - new Date(y, m-1, d)) / (1000*60*60*24*365)).toFixed(1);
+      if(fAlta) {
+          ant = ((ahora - fAlta) / (1000*60*60*24*365.25)).toFixed(1);
       }
+
+      // VALIDACIÓN CRÍTICA: Si la fecha de baja es en el futuro, se ignora
+      let finalBaja = (fBajaRaw && fBajaRaw <= ahora) ? fBajaRaw : null;
+
       return {
         codigo: r['Código'] || '',
         nombre: r['Nombre'] + ' ' + (r['Apellido paterno'] || ''),
         area: r['AREA'] || 'N/A',
         cdn: r['Departamento'] || 'N/A',
         puesto: r['Puesto'] || 'N/A',
-        estado: r['Entidad federativa de domicilio'] || 'N/A',
         sal_mensual: salDiario * 30,
-        antiguedad: parseFloat(ant) || 0,
-        estatus: r['Estatus empleado'] || 'A',
-        fechaBaja: r['Fecha de baja'] || null
+        antiguedad: Math.max(0, parseFloat(ant) || 0),
+        estatus: estatus,
+        fechaBaja: (estatus === 'A') ? null : finalBaja
       };
     }).filter(e => e.nombre.trim() !== "");
 
@@ -222,30 +239,28 @@ function updateDashboard() {
   document.getElementById('k-activos').textContent = filtered.length;
   document.getElementById('k-cdns').textContent = new Set(filtered.map(e => e.cdn)).size;
   document.getElementById('k-nomina').textContent = '$' + Math.round(nominaTotal).toLocaleString();
+  document.getElementById('k-sal').textContent = '$' + Math.round((nominaTotal/30)/filtered.length || 0).toLocaleString();
   document.getElementById('k-ant').textContent = (filtered.reduce((s,e)=>s+e.antiguedad,0)/filtered.length || 0).toFixed(1) + ' a';
   document.getElementById('k-hist').textContent = allEmployees.length;
-  document.getElementById('topbar-sub').textContent = `${filtered.length} empleados activos encontrados`;
+  document.getElementById('topbar-sub').textContent = `${filtered.length} empleados activos`;
 
   renderCharts();
-  filterTable();
+  renderTable(filtered);
 }
 
-// FILTRADO ACTIVO
 function quickFilter(campo, valor) {
   filtered = allEmployees.filter(e => e.estatus === 'A' && e[campo] === valor);
   document.getElementById('topbar-sub').innerHTML = `Filtrado por ${valor} <span onclick="updateDashboard()" style="color:var(--accent3); cursor:pointer; text-decoration:underline; margin-left:10px">[Limpiar]</span>`;
   renderTable(filtered);
 }
 
-// ORDENACIÓN
-function sortTable(key) {
-  currentSort.dir = (currentSort.key === key && currentSort.dir === 'asc') ? 'desc' : 'asc';
-  currentSort.key = key;
+function sortMain(key) {
+  sortState.dir = (sortState.key === key && sortState.dir === 'asc') ? 'desc' : 'asc';
+  sortState.key = key;
   filtered.sort((a, b) => {
     let v1 = a[key], v2 = b[key];
-    if (typeof v1 === 'string') { v1 = v1.toLowerCase(); v2 = v2.toLowerCase(); }
-    if (v1 < v2) return currentSort.dir === 'asc' ? -1 : 1;
-    if (v1 > v2) return currentSort.dir === 'asc' ? 1 : -1;
+    if (v1 < v2) return sortState.dir === 'asc' ? -1 : 1;
+    if (v1 > v2) return sortState.dir === 'asc' ? 1 : -1;
     return 0;
   });
   renderTable(filtered);
@@ -259,18 +274,16 @@ function filterTable() {
 
 function renderTable(data) {
   const tb = document.getElementById('empTable');
-  tb.innerHTML = data.slice(0, 50).map(e => `
+  tb.innerHTML = data.slice(0, 100).map(e => `
     <tr>
       <td><b>${e.nombre}</b><br><small style="color:var(--muted)">${e.codigo}</small></td>
-      <td class="clickable-cell" onclick="quickFilter('area','${e.area}')"><span class="area-pill" style="background:rgba(108,99,255,0.1)">${e.area}</span></td>
+      <td class="clickable-cell" onclick="quickFilter('area','${e.area}')">${e.area}</td>
       <td class="clickable-cell" onclick="quickFilter('puesto','${e.puesto}')">${e.puesto}</td>
       <td class="clickable-cell" onclick="quickFilter('cdn','${e.cdn}')">${e.cdn}</td>
-      <td>${e.estado}</td>
-      <td>${e.antiguedad} años</td>
+      <td style="color:var(--accent2)">${e.antiguedad} años</td>
       <td>$${Math.round(e.sal_mensual).toLocaleString()}</td>
     </tr>
   `).join('');
-  document.getElementById('countBadge').textContent = `${data.length} registros`;
 }
 
 function renderNomina() {
@@ -278,16 +291,32 @@ function renderNomina() {
   const activos = allEmployees.filter(e => e.estatus === 'A');
   const groups = {};
   activos.forEach(e => {
-    if(!groups[e[key]]) groups[e[key]] = { n: 0, sum: 0 };
+    if(!groups[e[key]]) groups[e[key]] = { categoria: e[key], n: 0, sum: 0 };
     groups[e[key]].n++;
     groups[e[key]].sum += e.sal_mensual;
   });
-  document.getElementById('nominaBody').innerHTML = Object.keys(groups).sort().map(k => `
+  nominaData = Object.values(groups).map(g => ({...g, promedio: g.sum / g.n }));
+  displayNomina(nominaData);
+}
+
+function sortNomina(key) {
+  sortState.dir = (sortState.key === key && sortState.dir === 'asc') ? 'desc' : 'asc';
+  sortState.key = key;
+  nominaData.sort((a, b) => {
+    if (a[key] < b[key]) return sortState.dir === 'asc' ? -1 : 1;
+    if (a[key] > b[key]) return sortState.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+  displayNomina(nominaData);
+}
+
+function displayNomina(data) {
+  document.getElementById('nominaBody').innerHTML = data.map(g => `
     <tr>
-      <td><b>${k}</b></td>
-      <td>${groups[k].n}</td>
-      <td>$${Math.round(groups[k].sum/groups[k].n).toLocaleString()}</td>
-      <td style="color:var(--accent2); font-weight:600">$${Math.round(groups[k].sum).toLocaleString()}</td>
+      <td><b>${g.categoria}</b></td>
+      <td>${g.n}</td>
+      <td>$${Math.round(g.promedio).toLocaleString()}</td>
+      <td style="color:var(--accent2); font-weight:600">$${Math.round(g.sum).toLocaleString()}</td>
     </tr>
   `).join('');
 }
@@ -310,10 +339,11 @@ function renderCharts() {
 
   const mActual = new Array(12).fill(0), mPasado = new Array(12).fill(0);
   const esteAño = new Date().getFullYear();
+  
   allEmployees.filter(e => e.fechaBaja).forEach(e => {
-    const f = new Date(e.fechaBaja);
-    if(f.getFullYear() === esteAño) mActual[f.getMonth()]++;
-    if(f.getFullYear() === esteAño - 1) mPasado[f.getMonth()]++;
+    const fBaja = e.fechaBaja;
+    if(fBaja.getFullYear() === esteAño) mActual[fBaja.getMonth()]++;
+    if(fBaja.getFullYear() === esteAño - 1) mPasado[fBaja.getMonth()]++;
   });
 
   charts.bajas = new Chart(document.getElementById('bajasChart'), {
@@ -321,11 +351,11 @@ function renderCharts() {
     data: {
       labels: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
       datasets: [
-        { label: 'Bajas '+esteAño, data: mActual, backgroundColor: '#6c63ff' },
-        { label: 'Bajas '+(esteAño-1), data: mPasado, backgroundColor: 'rgba(255,255,255,0.05)' }
+        { label: 'Bajas ' + esteAño, data: mActual, backgroundColor: '#6c63ff' },
+        { label: 'Bajas ' + (esteAño-1), data: mPasado, backgroundColor: 'rgba(255,255,255,0.05)' }
       ]
     },
-    options: { maintainAspectRatio: false }
+    options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
   });
 }
 
