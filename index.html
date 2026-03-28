@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PeopleOS — Grupo Sierra</title>
+<title>Dashboard RH — Grupo Sierra</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -15,49 +15,57 @@
     --text:#e8eaf2;--muted:#7c82a0;
     --font:'DM Sans',sans-serif;--radius:14px;
   }
-  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;overflow:hidden}
-  .shell{display:flex;height:100vh}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;overflow-x:hidden}
+  .shell{display:flex;min-height:100vh}
   
-  /* Sidebar */
-  .sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;flex-shrink:0}
+  /* Sidebar Estilo Original */
+  .sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;flex-shrink:0;position:sticky;top:0;height:100vh}
   .logo{display:flex;align-items:center;gap:10px;padding:0 20px 28px;border-bottom:1px solid var(--border);margin-bottom:16px}
   .logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
   .logo-text{font-size:15px;font-weight:600}
   .nav-section{padding:0 12px;margin-bottom:8px}
   .nav-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 8px;margin-bottom:4px}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;transition:all .2s;margin-bottom:4px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;transition:all .2s;margin-bottom:2px}
   .nav-item:hover{background:var(--surface2);color:var(--text)}
-  .nav-item.active{background:rgba(108,99,255,0.15);color:var(--accent);font-weight:500}
+  .nav-item.active{background:rgba(108,99,255,0.15);color:var(--accent)}
 
-  /* Main Content */
-  .main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
   .topbar{padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:100}
+  
   .content-page{padding:28px 32px;display:none}
   .content-page.active{display:block}
 
-  /* Reusable Components */
-  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;margin-bottom:24px}
-  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;border-top:3px solid var(--accent)}
-  .chart-card, .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px}
+  /* KPIs Estilo Original */
+  .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;border-top:2px solid var(--accent)}
+  .kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+  .kpi-value{font-size:22px;font-weight:600;letter-spacing:-0.5px}
+
+  /* Gráficas */
+  .charts-row{display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:18px;margin-bottom:24px}
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+  .chart-wrap{position:relative;height:220px}
+
+  /* Tablas */
+  .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .table-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;background:var(--surface2);gap:10px;flex-wrap:wrap}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;padding:12px 18px;color:var(--muted);font-size:11px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+  td{padding:12px 18px;border-bottom:1px solid var(--border);font-size:13px}
   
-  table{width:100%;border-collapse:collapse;margin-top:10px}
-  th{text-align:left;padding:12px;color:var(--muted);border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase}
-  td{padding:12px;border-bottom:1px solid var(--border)}
-  
-  .btn-primary{background:var(--accent);color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer}
-  .filter-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
-  .select-custom{background:var(--surface2);border:1px solid var(--border);color:white;padding:8px;border-radius:8px;outline:none}
+  .select-custom, .search-input{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;outline:none;font-size:12px}
+  .btn-refresh{background:var(--accent);color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:12px}
 </style>
 </head>
 <body>
 
 <div class="shell">
   <aside class="sidebar">
-    <div class="logo"><div class="logo-icon">👥</div><div class="logo-text">PeopleOS</div></div>
+    <div class="logo"><div class="logo-icon">👥</div><div class="logo-text">Sierra People</div></div>
     <div class="nav-section">
       <div class="nav-label">Análisis</div>
-      <div class="nav-item active" onclick="showPage('dashboard', this)"><span>📊</span> Dashboard</div>
-      <div class="nav-item" onclick="showPage('nomina', this)"><span>💰</span> Nómina</div>
+      <div class="nav-item active" onclick="showPage('dashboard', this)"><span>📊</span> Dashboard Principal</div>
+      <div class="nav-item" onclick="showPage('nomina', this)"><span>💰</span> Análisis de Nómina</div>
     </div>
     <div class="nav-section" style="margin-top:auto">
       <div class="nav-item" onclick="toggleConfig()"><span>⚙️</span> Configuración</div>
@@ -66,91 +74,86 @@
 
   <main class="main">
     <div class="topbar">
-      <h1 class="page-title" id="main-title">Dashboard RH</h1>
+      <h2 id="page-title">Dashboard RH</h2>
       <div class="topbar-right">
-        <button class="btn-primary" style="background:var(--surface2); color:var(--muted)" onclick="loadSheet()">↻ Sincronizar</button>
+        <button class="btn-refresh" onclick="loadSheet()">↻ Actualizar Datos</button>
       </div>
-    </div>
-
-    <div id="config-panel" class="content-page" style="display:none; border-bottom:1px solid var(--accent)">
-       <div class="chart-card">
-         <h3>Conexión de Datos</h3><br>
-         <div class="filter-row">
-           <input type="text" id="sheet-url" class="select-custom" style="flex:1" placeholder="URL CSV de Google Sheets">
-           <button class="btn-primary" onclick="loadSheet()">Guardar y Cargar</button>
-         </div>
-       </div>
     </div>
 
     <div id="page-dashboard" class="content-page active">
+      <div id="config-panel" style="display:none; margin-bottom:20px" class="chart-card">
+        <div style="display:flex; gap:10px">
+          <input type="text" id="sheet-url" class="select-custom" style="flex:1" placeholder="URL CSV de Google Sheets">
+          <button class="btn-refresh" onclick="loadSheet()">Conectar</button>
+        </div>
+      </div>
+
       <div class="kpi-grid">
-        <div class="kpi-card"><div class="kpi-label" style="color:var(--muted); font-size:11px">ACTIVOS</div><div class="kpi-value" id="k-activos">0</div></div>
-        <div class="kpi-card" style="border-top-color:var(--accent2)"><div class="kpi-label" style="color:var(--muted); font-size:11px">NÓMINA TOTAL</div><div class="kpi-value" id="k-nomina">$0</div></div>
-        <div class="kpi-card" style="border-top-color:var(--accent3)"><div class="kpi-label" style="color:var(--muted); font-size:11px">BAJAS AÑO</div><div class="kpi-value" id="k-bajas">0</div></div>
+        <div class="kpi-card" style="border-top-color:var(--accent)"><div class="kpi-label">Activos</div><div class="kpi-value" id="k-activos">0</div></div>
+        <div class="kpi-card" style="border-top-color:var(--accent2)"><div class="kpi-label">CDNs</div><div class="kpi-value" id="k-cdns">0</div></div>
+        <div class="kpi-card" style="border-top-color:var(--accent4)"><div class="kpi-label">Nómina Est.</div><div class="kpi-value" id="k-nomina">$0</div></div>
+        <div class="kpi-card" style="border-top-color:#4dabf7"><div class="kpi-label">Salario Prom.</div><div class="kpi-value" id="k-sal">$0</div></div>
+        <div class="kpi-card" style="border-top-color:#ff9f43"><div class="kpi-label">Antigüedad Prom.</div><div class="kpi-value" id="k-ant">0 a</div></div>
+        <div class="kpi-card" style="border-top-color:var(--accent3)"><div class="kpi-label">Histórico</div><div class="kpi-value" id="k-hist">0</div></div>
       </div>
-      <div class="chart-card">
-        <div class="kpi-label">Histograma de Bajas Mensuales</div>
-        <div style="height:250px"><canvas id="bajasChart"></canvas></div>
+
+      <div class="charts-row">
+        <div class="chart-card" style="flex:2"><div class="kpi-label">Bajas Mensuales (Año Actual vs Anterior)</div><div class="chart-wrap"><canvas id="bajasChart"></canvas></div></div>
+        <div class="chart-card"><div class="kpi-label">Distribución por Área</div><div class="chart-wrap"><canvas id="areaChart"></canvas></div></div>
       </div>
+
       <div class="table-card">
-        <div class="filter-row">
-          <input type="text" id="searchEmp" class="select-custom" placeholder="Buscar empleado..." oninput="updateDashboardTable()">
+        <div class="table-header">
+          <div style="display:flex; gap:8px">
+            <input type="text" id="searchEmp" class="search-input" placeholder="Buscar empleado..." oninput="filterTable()">
+            <select id="udnFilter" class="select-custom" onchange="filterTable()"><option value="">Todas las UDN</option></select>
+            <select id="areaFilter" class="select-custom" onchange="filterTable()"><option value="">Todas las Áreas</option></select>
+          </div>
+          <span id="countBadge" style="color:var(--muted); font-size:12px">0 empleados</span>
         </div>
         <table>
-          <thead><tr><th>Código</th><th>Nombre</th><th>Área</th><th>UDN</th><th>Estatus</th></tr></thead>
-          <tbody id="dashTableBody"></tbody>
+          <thead><tr><th>Código</th><th>Nombre</th><th>UDN</th><th>Área</th><th>Puesto</th><th>Estatus</th></tr></thead>
+          <tbody id="tableBody"></tbody>
         </table>
       </div>
     </div>
 
     <div id="page-nomina" class="content-page">
       <div class="chart-card">
-        <h3>Análisis Salarial Agrupado</h3>
-        <p style="color:var(--muted); font-size:12px; margin-bottom:15px">Analiza los promedios de sueldos según la categoría seleccionada.</p>
-        <div class="filter-row">
-          <label style="font-size:12px">Agrupar por:</label>
-          <select id="groupSelector" class="select-custom" onchange="renderNominaTable()">
-            <option value="puesto">Puesto</option>
-            <option value="area">Área</option>
-            <option value="udn">UDN (Unidad de Negocio)</option>
+        <div class="table-header" style="background:transparent; padding:0; margin-bottom:20px">
+          <h3>Estructura Salarial Agrupada</h3>
+          <select id="groupSelector" class="select-custom" onchange="renderNomina()">
+            <option value="puesto">Agrupar por Puesto</option>
+            <option value="area">Agrupar por Área</option>
+            <option value="udn">Agrupar por UDN</option>
           </select>
         </div>
         <table>
           <thead>
-            <tr>
-              <th id="groupHeader">Categoría</th>
-              <th>Cant. Empleados</th>
-              <th>Salario Promedio</th>
-              <th>Salario Máximo</th>
-              <th>Costo Mensual Total</th>
-            </tr>
+            <tr><th>Categoría</th><th>Colaboradores</th><th>Sueldo Promedio</th><th>Sueldo Máximo</th><th>Costo Mensual</th></tr>
           </thead>
-          <tbody id="nominaTableBody"></tbody>
+          <tbody id="nominaBody"></tbody>
         </table>
       </div>
     </div>
-
   </main>
 </div>
 
 <script>
 let allData = [], charts = {};
 
-// Navegación de páginas
-function showPage(pageId, el) {
-  document.querySelectorAll('.content-page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-  
-  document.getElementById('page-' + pageId).classList.add('active');
+function showPage(p, el) {
+  document.querySelectorAll('.content-page').forEach(page => page.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
   el.classList.add('active');
-  document.getElementById('main-title').textContent = pageId.toUpperCase();
-  
-  if(pageId === 'nomina') renderNominaTable();
+  document.getElementById('page-title').textContent = p === 'dashboard' ? 'Dashboard RH' : 'Análisis de Nómina';
+  if(p === 'nomina') renderNomina();
 }
 
 function toggleConfig() {
-  const p = document.getElementById('config-panel');
-  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  const cp = document.getElementById('config-panel');
+  cp.style.display = cp.style.display === 'none' ? 'block' : 'none';
 }
 
 async function loadSheet() {
@@ -164,21 +167,19 @@ async function loadSheet() {
     const rows = parseCSV(text);
     
     allData = rows.map(r => ({
-      codigo: r['Código'] || r['Codigo'] || 'N/A',
-      nombre: [r['Nombre'], r['Apellido paterno']].join(' '),
+      codigo: r['Código'] || r['Codigo'] || '—',
+      nombre: [r['Nombre'], r['Apellido paterno'], r['Apellido materno']].filter(Boolean).join(' '),
       area: r['AREA'] || 'N/A',
       udn: r['Departamento'] || r['CDN'] || 'N/A',
       puesto: r['Puesto'] || 'N/A',
       salario: (parseFloat(r['Salario diario']) || 0) * 30,
+      antiguedad: parseFloat(r['Antigüedad']) || 0,
       estatus: r['Estatus empleado'] || 'A',
       fechaBaja: r['Fecha de baja'] || r['Fecha Baja'] || null
     })).filter(e => e.nombre.trim() !== "");
 
-    updateDashboard();
-    if(document.getElementById('page-nomina').classList.contains('active')) renderNominaTable();
-    
-    alert("Datos sincronizados correctamente");
-  } catch(e) { alert("Error al cargar datos"); }
+    initDashboard();
+  } catch(e) { alert("Error al conectar con los datos."); }
 }
 
 function parseCSV(text) {
@@ -192,81 +193,105 @@ function parseCSV(text) {
   });
 }
 
-// Lógica de Dashboard
-function updateDashboard() {
+function initDashboard() {
   const activos = allData.filter(e => e.estatus === 'A');
+  const udns = [...new Set(activos.map(e => e.udn))].sort();
+  const areas = [...new Set(activos.map(e => e.area))].sort();
+
+  // Poblar Filtros
+  document.getElementById('udnFilter').innerHTML = '<option value="">Todas las UDN</option>' + udns.map(u => `<option>${u}</option>`).join('');
+  document.getElementById('areaFilter').innerHTML = '<option value="">Todas las Áreas</option>' + areas.map(a => `<option>${a}</option>`).join('');
+
+  // KPIs
+  const totalNomina = activos.reduce((s, e) => s + e.salario, 0);
   document.getElementById('k-activos').textContent = activos.length;
-  document.getElementById('k-nomina').textContent = '$' + Math.round(activos.reduce((s,e)=>s+e.salario,0)).toLocaleString();
-  
-  renderBajasChart();
-  updateDashboardTable();
+  document.getElementById('k-cdns').textContent = udns.length;
+  document.getElementById('k-nomina').textContent = '$' + Math.round(totalNomina).toLocaleString();
+  document.getElementById('k-sal').textContent = '$' + Math.round((totalNomina/30)/activos.length || 0).toLocaleString();
+  document.getElementById('k-ant').textContent = (activos.reduce((s,e)=>s+e.antiguedad,0)/activos.length || 0).toFixed(1) + ' a';
+  document.getElementById('k-hist').textContent = allData.length;
+
+  renderCharts();
+  filterTable();
 }
 
-function updateDashboardTable() {
+function filterTable() {
   const q = document.getElementById('searchEmp').value.toLowerCase();
-  const body = document.getElementById('dashTableBody');
-  const filtered = allData.filter(e => e.estatus === 'A' && (e.nombre.toLowerCase().includes(q) || e.codigo.includes(q)));
+  const udn = document.getElementById('udnFilter').value;
+  const area = document.getElementById('areaFilter').value;
   
-  body.innerHTML = filtered.slice(0, 15).map(e => `
+  const filtered = allData.filter(e => e.estatus === 'A').filter(e => {
+    return (!q || e.nombre.toLowerCase().includes(q) || e.codigo.includes(q)) &&
+           (!udn || e.udn === udn) &&
+           (!area || e.area === area);
+  });
+
+  document.getElementById('tableBody').innerHTML = filtered.slice(0, 20).map(e => `
     <tr>
       <td>${e.codigo}</td>
-      <td>${e.nombre}</td>
-      <td>${e.area}</td>
-      <td>${e.udn}</td>
-      <td><span style="color:#00d4aa">● Activo</span></td>
+      <td style="font-weight:500">${e.nombre}</td>
+      <td style="color:var(--muted)">${e.udn}</td>
+      <td><span style="background:rgba(108,99,255,0.1); color:var(--accent); padding:2px 8px; border-radius:10px; font-size:11px">${e.area}</span></td>
+      <td>${e.puesto}</td>
+      <td style="color:var(--accent2)">● Activo</td>
     </tr>
   `).join('');
+  document.getElementById('countBadge').textContent = `${filtered.length} empleados`;
 }
 
-// LÓGICA DE NÓMINA (AGRUPACIÓN)
-function renderNominaTable() {
-  const groupBy = document.getElementById('groupSelector').value;
-  const body = document.getElementById('nominaTableBody');
+function renderNomina() {
+  const groupKey = document.getElementById('groupSelector').value;
   const activos = allData.filter(e => e.estatus === 'A');
-  
-  document.getElementById('groupHeader').textContent = groupBy.toUpperCase();
-
   const groups = {};
+
   activos.forEach(e => {
-    const key = e[groupBy];
+    const key = e[groupKey];
     if(!groups[key]) groups[key] = { count: 0, total: 0, max: 0 };
     groups[key].count++;
     groups[key].total += e.salario;
     if(e.salario > groups[key].max) groups[key].max = e.salario;
   });
 
-  body.innerHTML = Object.keys(groups).sort().map(key => {
-    const g = groups[key];
-    return `
-      <tr>
-        <td style="font-weight:600; color:var(--accent2)">${key}</td>
-        <td>${g.count} empleados</td>
-        <td>$${Math.round(g.total / g.count).toLocaleString()}</td>
-        <td>$${Math.round(g.max).toLocaleString()}</td>
-        <td>$${Math.round(g.total).toLocaleString()}</td>
-      </tr>
-    `;
-  }).join('');
+  document.getElementById('nominaBody').innerHTML = Object.keys(groups).sort().map(k => `
+    <tr>
+      <td style="font-weight:600; color:var(--accent2)">${k}</td>
+      <td>${groups[k].count}</td>
+      <td>$${Math.round(groups[k].total/groups[k].count).toLocaleString()}</td>
+      <td>$${Math.round(groups[k].max).toLocaleString()}</td>
+      <td style="font-weight:600">$${Math.round(groups[k].total).toLocaleString()}</td>
+    </tr>
+  `).join('');
 }
 
-function renderBajasChart() {
-  if(charts.bajas) charts.bajas.destroy();
-  const ctx = document.getElementById('bajasChart');
-  const añoActual = new Date().getFullYear();
-  const meses = new Array(12).fill(0);
-
-  allData.filter(e => e.fechaBaja).forEach(e => {
-    const f = new Date(e.fechaBaja);
-    if(f.getFullYear() === añoActual) meses[f.getMonth()]++;
+function renderCharts() {
+  Object.values(charts).forEach(c => c.destroy());
+  
+  // Chart Áreas
+  const areaData = {};
+  allData.filter(e=>e.estatus==='A').forEach(e => areaData[e.area] = (areaData[e.area]||0)+1);
+  charts.area = new Chart(document.getElementById('areaChart'), {
+    type: 'doughnut',
+    data: { labels: Object.keys(areaData), datasets: [{ data: Object.values(areaData), backgroundColor: ['#6c63ff','#00d4aa','#ff6b6b','#ffd166','#4dabf7'] }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#7c82a0', boxWidth: 10, font: { size: 10 } } } } }
   });
 
-  document.getElementById('k-bajas').textContent = meses.reduce((a,b)=>a+b,0);
+  // Chart Bajas
+  const año = new Date().getFullYear();
+  const mActual = new Array(12).fill(0), mPasado = new Array(12).fill(0);
+  allData.filter(e => e.fechaBaja).forEach(e => {
+    const f = new Date(e.fechaBaja);
+    if(f.getFullYear() === año) mActual[f.getMonth()]++;
+    else if(f.getFullYear() === año - 1) mPasado[f.getMonth()]++;
+  });
 
-  charts.bajas = new Chart(ctx, {
-    type: 'line',
+  charts.bajas = new Chart(document.getElementById('bajasChart'), {
+    type: 'bar',
     data: {
       labels: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
-      datasets: [{ label: 'Bajas '+añoActual, data: meses, borderColor: '#6c63ff', tension: 0.4, fill: true, backgroundColor: 'rgba(108,99,255,0.1)' }]
+      datasets: [
+        { label: 'Bajas '+año, data: mActual, backgroundColor: '#6c63ff' },
+        { label: 'Bajas '+(año-1), data: mPasado, backgroundColor: 'rgba(255,255,255,0.05)' }
+      ]
     },
     options: { maintainAspectRatio: false, scales: { y: { grid: { color: '#1e2230' } } } }
   });
