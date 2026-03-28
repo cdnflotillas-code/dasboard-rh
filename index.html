@@ -13,58 +13,46 @@
     --border:rgba(255,255,255,0.07);
     --accent:#6c63ff;--accent2:#00d4aa;--accent3:#ff6b6b;--accent4:#ffd166;
     --text:#e8eaf2;--muted:#7c82a0;
-    --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--radius:14px;
+    --font:'DM Sans',sans-serif;--radius:14px;
   }
-  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;overflow:hidden}
-  .shell{display:flex;height:100vh}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;overflow-x:hidden}
+  .shell{display:flex;min-height:100vh}
 
-  /* Sidebar */
   .sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;flex-shrink:0}
   .logo{display:flex;align-items:center;gap:10px;padding:0 20px 28px;border-bottom:1px solid var(--border);margin-bottom:16px}
   .logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
-  .logo-text{font-size:15px;font-weight:600;letter-spacing:-.3px}
+  .logo-text{font-size:15px;font-weight:600}
+  
   .nav-section{padding:0 12px;margin-bottom:8px}
-  .nav-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 8px;margin-bottom:4px}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;margin-bottom:2px}
-  .nav-item:hover{background:var(--surface2);color:var(--text)}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;margin-bottom:2px}
   .nav-item.active{background:rgba(108,99,255,.15);color:var(--accent)}
-  .nav-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 
-  /* Main */
   .main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
   .topbar{padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:100}
   .content-page{padding:28px 32px;display:none}
   .content-page.active{display:block}
 
-  /* KPIs */
   .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
-  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;border-top:2px solid var(--accent)}
-  .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
-  .kpi-value{font-size:26px;font-weight:600;letter-spacing:-1px}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;border-top:2px solid var(--accent)}
+  .kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+  .kpi-value{font-size:24px;font-weight:600}
 
-  /* Tables & Charts */
   .chart-card, .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:24px}
   .chart-wrap{position:relative;height:220px}
   table{width:100%;border-collapse:collapse}
-  th{text-align:left;padding:12px;font-size:11px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:var(--surface2)}
+  th{text-align:left;padding:12px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);background:var(--surface2)}
   td{padding:12px;border-bottom:1px solid var(--border);font-size:13px}
 
-  .btn-refresh, .filter-select, .search-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;outline:none;font-size:12px}
-  .btn-primary{background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:8px;cursor:pointer}
+  .search-input, .select-custom{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;outline:none;font-size:12px}
 </style>
 </head>
 <body>
 <div class="shell">
-
   <aside class="sidebar">
-    <div class="logo">
-      <div class="logo-icon">👥</div>
-      <div><div class="logo-text">PeopleOS</div></div>
-    </div>
+    <div class="logo"><div class="logo-icon">👥</div><div class="logo-text">Sierra People</div></div>
     <div class="nav-section">
-      <div class="nav-label">Menú</div>
-      <div class="nav-item active" onclick="showPage('dashboard', this)"><div class="nav-dot" style="background:var(--accent)"></div> Dashboard</div>
-      <div class="nav-item" onclick="showPage('nomina', this)"><div class="nav-dot" style="background:var(--accent2)"></div> Nómina</div>
+      <div class="nav-item active" onclick="showPage('dashboard', this)">📊 Dashboard</div>
+      <div class="nav-item" onclick="showPage('nomina', this)">💰 Nómina</div>
     </div>
     <div class="nav-section" style="margin-top:auto">
       <div class="nav-item" onclick="toggleConfig()">⚙️ Configuración</div>
@@ -73,47 +61,40 @@
 
   <main class="main">
     <div class="topbar">
-      <div class="page-title" id="main-title">Dashboard de RH</div>
-      <div class="topbar-right">
-        <button class="btn-refresh" onclick="loadSheet()">↻ Actualizar</button>
-      </div>
+      <div id="main-title" style="font-weight:600">Dashboard de RH</div>
+      <button class="search-input" style="cursor:pointer" onclick="loadSheet()">↻ Sincronizar</button>
     </div>
 
     <div id="page-dashboard" class="content-page active">
       <div id="config-panel" style="display:none; margin-bottom:20px" class="chart-card">
-         <div style="display:flex; gap:10px">
-           <input type="text" id="sheet-url" class="search-input" style="flex:1" placeholder="URL de Google Sheets (CSV)">
-           <button class="btn-primary" onclick="loadSheet()">Conectar</button>
-         </div>
+         <input type="text" id="sheet-url" class="search-input" style="width:80%" placeholder="Pega el link CSV aquí">
+         <button class="search-input" onclick="loadSheet()">Conectar</button>
       </div>
 
       <div class="kpi-grid">
-        <div class="kpi-card" style="border-top-color:var(--accent)"><div class="kpi-label">Activos</div><div class="kpi-value" id="k-activos">—</div></div>
-        <div class="kpi-card" style="border-top-color:var(--accent2)"><div class="kpi-label">Centros CDN</div><div class="kpi-value" id="k-cdns">—</div></div>
-        <div class="kpi-card" style="border-top-color:var(--accent4)"><div class="kpi-label">Nómina Mensual</div><div class="kpi-value" id="k-nomina">—</div></div>
-        <div class="kpi-card" style="border-top-color:#4dabf7"><div class="kpi-label">Sal. Diario Prom.</div><div class="kpi-value" id="k-sal">—</div></div>
-        <div class="kpi-card" style="border-top-color:#ff9f43"><div class="kpi-label">Antigüedad Prom.</div><div class="kpi-value" id="k-ant">—</div></div>
-        <div class="kpi-card" style="border-top-color:var(--accent3)"><div class="kpi-label">Histórico</div><div class="kpi-value" id="k-hist">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Activos</div><div class="kpi-value" id="k-activos">0</div></div>
+        <div class="kpi-card" style="border-top-color:var(--accent2)"><div class="kpi-label">Centros CDN</div><div class="kpi-value" id="k-cdns">0</div></div>
+        <div class="kpi-card" style="border-top-color:var(--accent4)"><div class="kpi-label">Nómina Est.</div><div class="kpi-value" id="k-nomina">$0</div></div>
+        <div class="kpi-card" style="border-top-color:#4dabf7"><div class="kpi-label">Sal. Diario Prom.</div><div class="kpi-value" id="k-sal">$0</div></div>
+        <div class="kpi-card" style="border-top-color:#ff9f43"><div class="kpi-label">Antigüedad Prom.</div><div class="kpi-value" id="k-ant">0 a</div></div>
+        <div class="kpi-card" style="border-top-color:var(--accent3)"><div class="kpi-label">Histórico</div><div class="kpi-value" id="k-hist">0</div></div>
       </div>
 
       <div style="display:grid; grid-template-columns: 2fr 1fr; gap:18px">
         <div class="chart-card">
-          <div class="kpi-label">Histograma de Bajas (Año Actual vs Anterior)</div>
+          <div class="kpi-label">Histograma de Bajas (Comparativo Anual)</div>
           <div class="chart-wrap"><canvas id="bajasChart"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="kpi-label">Distribución por Área</div>
+          <div class="kpi-label">Distribución Áreas</div>
           <div class="chart-wrap"><canvas id="areaChart"></canvas></div>
         </div>
       </div>
 
       <div class="table-card">
-        <div style="display:flex; justify-content:space-between; margin-bottom:15px">
-            <input type="text" id="searchEmp" class="search-input" placeholder="Buscar empleado..." oninput="filterTable()">
-            <div id="countBadge" class="nav-label" style="margin:0">0 empleados</div>
-        </div>
+        <input type="text" id="searchEmp" class="search-input" style="width:300px; margin-bottom:15px" placeholder="Buscar por nombre o código..." oninput="filterTable()">
         <table>
-          <thead><tr><th>Código</th><th>Nombre</th><th>UDN / CDN</th><th>Área</th><th>Antigüedad</th></tr></thead>
+          <thead><tr><th>Código</th><th>Nombre</th><th>UDN</th><th>Puesto</th><th>Antigüedad</th></tr></thead>
           <tbody id="empTable"></tbody>
         </table>
       </div>
@@ -121,172 +102,175 @@
 
     <div id="page-nomina" class="content-page">
       <div class="table-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
-          <div class="page-title">Análisis Salarial</div>
-          <select id="groupSelector" class="filter-select" onchange="renderNomina()">
-            <option value="puesto">Agrupar por Puesto</option>
-            <option value="area">Agrupar por Área</option>
-            <option value="cdn">Agrupar por CDN</option>
-          </select>
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px">
+            <h3>Estructura Salarial</h3>
+            <select id="groupSelector" class="select-custom" onchange="renderNomina()">
+                <option value="puesto">Puesto</option>
+                <option value="area">Área</option>
+                <option value="cdn">CDN</option>
+            </select>
         </div>
         <table>
-          <thead>
-            <tr><th>Categoría</th><th>Colaboradores</th><th>Promedio</th><th>Máximo</th><th>Costo Mensual</th></tr>
-          </thead>
+          <thead><tr><th>Categoría</th><th>Personal</th><th>Sueldo Prom.</th><th>Costo Mensual</th></tr></thead>
           <tbody id="nominaBody"></tbody>
         </table>
       </div>
     </div>
-
   </main>
 </div>
 
 <script>
-let allEmployees = [], filtered = [], charts = {};
+let allEmployees = [], charts = {};
 
-function showPage(pageId, el) {
-  document.querySelectorAll('.content-page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-  document.getElementById('page-' + pageId).classList.add('active');
-  el.classList.add('active');
-  document.getElementById('main-title').textContent = pageId === 'dashboard' ? 'Dashboard de RH' : 'Análisis de Nómina';
-  if(pageId === 'nomina') renderNomina();
+function showPage(p, el) {
+    document.querySelectorAll('.content-page').forEach(pg => pg.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(ni => ni.classList.remove('active'));
+    document.getElementById('page-'+p).classList.add('active');
+    el.classList.add('active');
+    if(p === 'nomina') renderNomina();
 }
 
 function toggleConfig() {
-  const p = document.getElementById('config-panel');
-  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+    const cp = document.getElementById('config-panel');
+    cp.style.display = cp.style.display === 'none' ? 'block' : 'none';
+}
+
+// FUNCIÓN CLAVE: CALCULAR ANTIGÜEDAD DESDE LA FECHA DE ALTA
+function calculateYears(dateString) {
+    if (!dateString) return 0;
+    const birth = new Date(dateString);
+    if (isNaN(birth.getTime())) return 0;
+    const now = new Date();
+    let years = now.getFullYear() - birth.getFullYear();
+    const m = now.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) years--;
+    return years < 0 ? 0 : years;
 }
 
 async function loadSheet() {
-  const url = document.getElementById('sheet-url').value || localStorage.getItem('rh_url');
-  if(!url) return toggleConfig();
-  localStorage.setItem('rh_url', url);
+    const url = document.getElementById('sheet-url').value || localStorage.getItem('rh_url');
+    if(!url) return toggleConfig();
+    localStorage.setItem('rh_url', url);
 
-  try {
-    const res = await fetch(url);
-    const text = await res.text();
-    const rows = parseCSV(text);
-    
-    allEmployees = rows.map(r => {
-      const salDiario = parseFloat(r['Salario diario'] || 0) || 0;
-      return {
-        codigo: r['Código'] || r['Codigo'] || '—',
-        nombre: [r['Nombre'], r['Apellido paterno']].filter(Boolean).join(' '),
-        area: r['AREA'] || 'N/A',
-        cdn: r['Departamento'] || r['CDN'] || 'N/A',
-        puesto: r['Puesto'] || 'N/A',
-        salario: salDiario * 30,
-        antiguedad: parseFloat(r['Antigüedad']) || 0,
-        estatus: r['Estatus empleado'] || 'A',
-        fechaBaja: r['Fecha de baja'] || r['Fecha Baja'] || null
-      };
-    }).filter(e => e.nombre.trim() !== "");
+    try {
+        const res = await fetch(url);
+        const text = await res.text();
+        const rows = parseCSV(text);
+        
+        allEmployees = rows.map(r => {
+            const salDiario = parseFloat(r['Salario diario'] || 0);
+            // Si tu columna se llama "Fecha de alta", el código la usará para calcular
+            const fechaIngreso = r['Fecha de alta'] || r['Alta'] || r['Fecha Ingreso'];
+            const antigCalculada = calculateYears(fechaIngreso);
+            
+            return {
+                codigo: r['Código'] || r['Codigo'] || '—',
+                nombre: [r['Nombre'], r['Apellido paterno']].join(' '),
+                area: r['AREA'] || 'N/A',
+                cdn: r['Departamento'] || r['CDN'] || 'N/A',
+                puesto: r['Puesto'] || 'N/A',
+                salario: salDiario * 30,
+                salarioDiario: salDiario,
+                antiguedad: antigCalculada,
+                estatus: r['Estatus empleado'] || 'A',
+                fechaBaja: r['Fecha de baja'] || r['Fecha Baja'] || null
+            };
+        }).filter(e => e.nombre.trim() !== "");
 
-    updateDashboard();
-  } catch(e) { console.error(e); }
+        updateDashboard();
+    } catch(e) { alert("Error al leer los datos."); }
 }
 
 function parseCSV(text) {
-  const lines = text.trim().split(/\r?\n/);
-  const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
-  return lines.slice(1).map(line => {
-    const vals = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-    const obj = {};
-    headers.forEach((h, i) => obj[h] = (vals[i] || "").replace(/"/g, '').trim());
-    return obj;
-  });
+    const lines = text.trim().split(/\r?\n/);
+    const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+    return lines.slice(1).map(line => {
+        const vals = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = (vals[i] || "").replace(/"/g, '').trim());
+        return obj;
+    });
 }
 
 function updateDashboard() {
-  const activos = allEmployees.filter(e => e.estatus === 'A');
-  const totalNomina = activos.reduce((s, e) => s + e.salario, 0);
-  
-  document.getElementById('k-activos').textContent = activos.length;
-  document.getElementById('k-cdns').textContent = new Set(activos.map(e => e.cdn)).size;
-  document.getElementById('k-nomina').textContent = '$' + Math.round(totalNomina).toLocaleString();
-  document.getElementById('k-sal').textContent = '$' + Math.round((totalNomina/30)/activos.length || 0);
-  document.getElementById('k-ant').textContent = (activos.reduce((s,e)=>s+e.antiguedad,0)/activos.length || 0).toFixed(1) + ' a';
-  document.getElementById('k-hist').textContent = allEmployees.length;
+    const activos = allEmployees.filter(e => e.estatus === 'A');
+    const totalNomina = activos.reduce((s, e) => s + e.salario, 0);
+    const sumAntig = activos.reduce((s, e) => s + e.antiguedad, 0);
 
-  renderCharts();
-  filterTable();
+    document.getElementById('k-activos').textContent = activos.length;
+    document.getElementById('k-cdns').textContent = new Set(activos.map(e => e.cdn)).size;
+    document.getElementById('k-nomina').textContent = '$' + Math.round(totalNomina).toLocaleString();
+    document.getElementById('k-sal').textContent = '$' + Math.round((activos.reduce((s,e)=>s+e.salarioDiario,0))/activos.length || 0);
+    document.getElementById('k-ant').textContent = (sumAntig / activos.length || 0).toFixed(1) + ' a';
+    document.getElementById('k-hist').textContent = allEmployees.length;
+
+    renderCharts();
+    filterTable();
 }
 
 function filterTable() {
-  const q = document.getElementById('searchEmp').value.toLowerCase();
-  filtered = allEmployees.filter(e => e.estatus === 'A' && (e.nombre.toLowerCase().includes(q) || e.codigo.includes(q)));
-  
-  document.getElementById('empTable').innerHTML = filtered.slice(0, 20).map(e => `
-    <tr>
-      <td style="font-family:var(--mono)">${e.codigo}</td>
-      <td style="font-weight:600">${e.nombre}</td>
-      <td>${e.cdn}</td>
-      <td><span style="color:var(--accent)">${e.area}</span></td>
-      <td>${e.antiguedad} a</td>
-    </tr>
-  `).join('');
-  document.getElementById('countBadge').textContent = `${filtered.length} activos`;
+    const q = document.getElementById('searchEmp').value.toLowerCase();
+    const filtered = allEmployees.filter(e => e.estatus === 'A' && (e.nombre.toLowerCase().includes(q) || e.codigo.includes(q)));
+    
+    document.getElementById('empTable').innerHTML = filtered.slice(0, 15).map(e => `
+        <tr>
+            <td>${e.codigo}</td>
+            <td style="font-weight:600">${e.nombre}</td>
+            <td>${e.cdn}</td>
+            <td>${e.area}</td>
+            <td style="color:var(--accent2); font-weight:600">${e.antiguedad} años</td>
+        </tr>
+    `).join('');
 }
 
 function renderNomina() {
-  const key = document.getElementById('groupSelector').value;
-  const activos = allEmployees.filter(e => e.estatus === 'A');
-  const groups = {};
-
-  activos.forEach(e => {
-    const g = e[key];
-    if(!groups[g]) groups[g] = { n: 0, sum: 0, max: 0 };
-    groups[g].n++;
-    groups[g].sum += e.salario;
-    if(e.salario > groups[g].max) groups[g].max = e.salario;
-  });
-
-  document.getElementById('nominaBody').innerHTML = Object.keys(groups).sort().map(k => `
-    <tr>
-      <td style="font-weight:600; color:var(--accent2)">${k}</td>
-      <td>${groups[k].n}</td>
-      <td>$${Math.round(groups[k].sum/groups[k].n).toLocaleString()}</td>
-      <td>$${Math.round(groups[k].max).toLocaleString()}</td>
-      <td style="font-weight:600">$${Math.round(groups[k].sum).toLocaleString()}</td>
-    </tr>
-  `).join('');
+    const key = document.getElementById('groupSelector').value;
+    const activos = allEmployees.filter(e => e.estatus === 'A');
+    const groups = {};
+    activos.forEach(e => {
+        const k = e[key];
+        if(!groups[k]) groups[k] = { n:0, sum:0 };
+        groups[k].n++;
+        groups[k].sum += e.salario;
+    });
+    document.getElementById('nominaBody').innerHTML = Object.keys(groups).sort().map(k => `
+        <tr>
+            <td>${k}</td>
+            <td>${groups[k].n}</td>
+            <td>$${Math.round(groups[k].sum/groups[k].n).toLocaleString()}</td>
+            <td>$${Math.round(groups[k].sum).toLocaleString()}</td>
+        </tr>
+    `).join('');
 }
 
 function renderCharts() {
-  Object.values(charts).forEach(c => c.destroy());
-  
-  // Áreas
-  const areaData = {};
-  allEmployees.filter(e=>e.estatus==='A').forEach(e => areaData[e.area] = (areaData[e.area]||0)+1);
-  charts.area = new Chart(document.getElementById('areaChart'), {
-    type: 'doughnut',
-    data: { labels: Object.keys(areaData), datasets: [{ data: Object.values(areaData), backgroundColor: ['#6c63ff','#00d4aa','#ffd166','#ff6b6b','#4dabf7'] }] },
-    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
-  });
+    Object.values(charts).forEach(c => c.destroy());
+    
+    // Áreas
+    const areaData = {};
+    allEmployees.filter(e=>e.estatus==='A').forEach(e => areaData[e.area] = (areaData[e.area]||0)+1);
+    charts.area = new Chart(document.getElementById('areaChart'), {
+        type: 'doughnut',
+        data: { labels: Object.keys(areaData), datasets: [{ data: Object.values(areaData), backgroundColor: ['#6c63ff','#00d4aa','#ffd166','#ff6b6b','#4dabf7'] }] },
+        options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
 
-  // Bajas Comparativas
-  const hoy = new Date();
-  const aActual = hoy.getFullYear();
-  const mActual = new Array(12).fill(0), mPasado = new Array(12).fill(0);
-  
-  allEmployees.filter(e => e.fechaBaja).forEach(e => {
-    const f = new Date(e.fechaBaja);
-    if(f.getFullYear() === aActual) mActual[f.getMonth()]++;
-    else if(f.getFullYear() === aActual - 1) mPasado[f.getMonth()]++;
-  });
-
-  charts.bajas = new Chart(document.getElementById('bajasChart'), {
-    type: 'bar',
-    data: {
-      labels: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
-      datasets: [
-        { label: 'Bajas ' + aActual, data: mActual, backgroundColor: '#6c63ff' },
-        { label: 'Bajas ' + (aActual-1), data: mPasado, backgroundColor: 'rgba(255,255,255,0.05)' }
-      ]
-    },
-    options: { maintainAspectRatio: false, scales: { y: { grid: { color: '#1e2230' } } } }
-  });
+    // Bajas
+    const año = new Date().getFullYear();
+    const mActual = new Array(12).fill(0), mPasado = new Array(12).fill(0);
+    allEmployees.filter(e => e.fechaBaja).forEach(e => {
+        const f = new Date(e.fechaBaja);
+        if(f.getFullYear() === año) mActual[f.getMonth()]++;
+        else if(f.getFullYear() === año - 1) mPasado[f.getMonth()]++;
+    });
+    charts.bajas = new Chart(document.getElementById('bajasChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+            datasets: [{ label: 'Bajas '+año, data: mActual, backgroundColor: '#6c63ff' }, { label: 'Bajas '+(año-1), data: mPasado, backgroundColor: 'rgba(255,255,255,0.05)' }]
+        },
+        options: { maintainAspectRatio: false }
+    });
 }
 
 window.onload = () => { if(localStorage.getItem('rh_url')) loadSheet(); };
