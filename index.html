@@ -1,74 +1,335 @@
-<div class="table-card">
-  <div class="table-header">
-    <div class="table-title">Directorio de empleados activos</div>
-    <div class="table-controls">
-      <input class="search-input" type="text" placeholder="Nombre, puesto, CDN, código…" id="searchInput" oninput="filterTable()">
-      <select class="filter-select" id="areaFilter" onchange="filterTable()">
-        <option value="">Todas las áreas</option>
-      </select>
-      <span class="count-badge" id="countBadge">—</span>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard RH — Grupo Sierra</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  /* Estilos base del Dashboard original */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0d0f14;--surface:#161922;--surface2:#1e2230;
+    --border:rgba(255,255,255,0.07);
+    --accent:#6c63ff;--accent2:#00d4aa;--accent3:#ff6b6b;--accent4:#ffd166;
+    --text:#e8eaf2;--muted:#7c82a0;
+    --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--radius:14px;
+  }
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;overflow-x:hidden}
+  .shell{display:flex;min-height:100vh}
+
+  /* Sidebar */
+  .sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;flex-shrink:0;position:sticky;top:0;height:100vh}
+  .logo{display:flex;align-items:center;gap:10px;padding:0 20px 28px;border-bottom:1px solid var(--border);margin-bottom:16px}
+  .logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .logo-text{font-size:15px;font-weight:600}
+  .nav-section{padding:0 12px;margin-bottom:8px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;margin-bottom:2px}
+  .nav-item:hover{background:var(--surface2);color:var(--text)}
+  .nav-item.active{background:rgba(108,99,255,.15);color:var(--accent)}
+
+  /* Main & Topbar */
+  .main{flex:1;overflow:auto}
+  .topbar{padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:100;gap:16px}
+  .page-title{font-size:18px;font-weight:600}
+  .page-subtitle{font-size:12px;color:var(--muted);margin-top:2px}
+  .btn-refresh{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:6px 14px;border-radius:8px;cursor:pointer}
+  .content{padding:28px 32px}
+
+  /* KPIs */
+  .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;border-top:2px solid var(--accent)}
+  .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+  .kpi-value{font-size:26px;font-weight:600;line-height:1}
+
+  /* Charts & Tables */
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
+  .chart-wrap{position:relative;height:220px}
+  .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:28px}
+  table{width:100%;border-collapse:collapse}
+  th{padding:12px 18px;font-size:11px;text-transform:uppercase;color:var(--muted);text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer}
+  td{padding:12px 18px;font-size:13px;border-bottom:1px solid var(--border)}
+  .area-pill{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+  .clickable-cell{cursor:pointer; transition: color 0.2s;}
+  .clickable-cell:hover{color:var(--accent2);}
+
+  /* Config */
+  #config-panel{background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:20px;margin-bottom:20px;display:none}
+  .search-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;outline:none}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-icon">👥</div><div class="logo-text">PeopleOS</div></div>
+    <div class="nav-section">
+      <div class="nav-item active" onclick="showPage('dashboard', this)">📊 Dashboard</div>
+      <div class="nav-item" onclick="showPage('nomina', this)">💰 Nómina Agrupada</div>
     </div>
-  </div>
-  <div style="overflow-x:auto">
-    <table>
-      <thead>
-        <tr>
-          <th onclick="sortTable('nombre')" style="cursor:pointer">Empleado ↕</th>
-          <th onclick="sortTable('area')" style="cursor:pointer">Área ↕</th>
-          <th onclick="sortTable('puesto')" style="cursor:pointer">Puesto ↕</th>
-          <th onclick="sortTable('cdn')" style="cursor:pointer">CDN / Centro ↕</th>
-          <th onclick="sortTable('estado')" style="cursor:pointer">Estado ↕</th>
-          <th>Fecha alta</th>
-          <th onclick="sortTable('antiguedad')" style="cursor:pointer">Antigüedad ↕</th>
-          <th onclick="sortTable('sal_mensual')" style="cursor:pointer">Sal. mensual ↕</th>
-        </tr>
-      </thead>
-      <tbody id="empTable"></tbody>
-    </table>
-  </div>
-  </div>
+    <div class="nav-section" style="margin-top:auto"><div class="nav-item" onclick="toggleConfig()">⚙️ Configurar Sheet</div></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div><div class="page-title" id="main-title">Dashboard de RH</div><div class="page-subtitle" id="topbar-sub">Cargando datos...</div></div>
+      <div class="topbar-right">
+        <button class="btn-refresh" onclick="loadSheet()">↻ Sincronizar</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div id="config-panel">
+         <input type="text" id="sheet-url" class="search-input" style="width:70%" placeholder="URL CSV de Google Sheets">
+         <button class="btn-refresh" onclick="loadSheet()" style="background:var(--accent); color:white">Conectar</button>
+      </div>
+
+      <div id="page-dashboard" class="content-page">
+        <div class="kpi-grid">
+          <div class="kpi-card" style="border-color:var(--accent)"><div class="kpi-label">Activos</div><div class="kpi-value" id="k-activos">0</div></div>
+          <div class="kpi-card" style="border-color:var(--accent2)"><div class="kpi-label">Centros CDN</div><div class="kpi-value" id="k-cdns">0</div></div>
+          <div class="kpi-card" style="border-color:var(--accent4)"><div class="kpi-label">Nómina Est.</div><div class="kpi-value" id="k-nomina">$0</div></div>
+          <div class="kpi-card" style="border-color:#4dabf7"><div class="kpi-label">Sal. Diario Prom.</div><div class="kpi-value" id="k-sal">$0</div></div>
+          <div class="kpi-card" style="border-color:#ff9f43"><div class="kpi-label">Antigüedad Prom.</div><div class="kpi-value" id="k-ant">0 a</div></div>
+          <div class="kpi-card" style="border-color:var(--accent3)"><div class="kpi-label">Histórico</div><div class="kpi-value" id="k-hist">0</div></div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="kpi-label">Histograma de Bajas (Comparativo Anual)</div>
+            <div class="chart-wrap"><canvas id="bajasChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="kpi-label">Distribución por Áreas</div>
+            <div class="chart-wrap"><canvas id="areaChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div style="padding:16px; display:flex; gap:10px">
+            <input type="text" id="searchInput" class="search-input" placeholder="Buscar empleado..." oninput="filterTable()" style="width:300px">
+            <span id="countBadge" style="font-size:12px; color:var(--muted); align-self:center"></span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th onclick="sortTable('nombre')">Empleado ↕</th>
+                <th onclick="sortTable('area')">Área ↕</th>
+                <th onclick="sortTable('puesto')">Puesto ↕</th>
+                <th onclick="sortTable('cdn')">CDN ↕</th>
+                <th onclick="sortTable('estado')">Estado ↕</th>
+                <th onclick="sortTable('antiguedad')">Antigüedad ↕</th>
+                <th onclick="sortTable('sal_mensual')">Sueldo ↕</th>
+              </tr>
+            </thead>
+            <tbody id="empTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="page-nomina" class="content-page" style="display:none">
+        <div class="table-card">
+          <div style="padding:16px; display:flex; justify-content:space-between">
+            <div class="page-title">Análisis de Nómina Agrupada</div>
+            <select id="groupSelector" class="search-input" onchange="renderNomina()">
+              <option value="puesto">Agrupar por Puesto</option>
+              <option value="area">Agrupar por Área</option>
+              <option value="cdn">Agrupar por CDN</option>
+            </select>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Categoría</th><th>Colaboradores</th><th>Sueldo Promedio</th><th>Costo Mensual</th></tr>
+            </thead>
+            <tbody id="nominaBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
 
 <script>
-/* --- Añade estas variables y función al final de tu <script> --- */
+let allEmployees = [], filtered = [], currentSort = { key: 'nombre', dir: 'asc' };
+let charts = {};
 
-let currentSort = { key: '', dir: 'asc' };
-
-function sortTable(key) {
-  // Si volvemos a hacer clic en la misma columna, invertimos la dirección
-  if (currentSort.key === key) {
-    currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
-  } else {
-    currentSort.key = key;
-    currentSort.dir = 'asc';
-  }
-
-  filtered.sort((a, b) => {
-    let valA = a[key];
-    let valB = b[key];
-
-    // Manejo especial para números (antigüedad y salario)
-    if (key === 'antiguedad' || key === 'sal_mensual') {
-      valA = parseFloat(valA) || 0;
-      valB = parseFloat(valB) || 0;
-    } else {
-      // Para texto, ignorar mayúsculas/minúsculas
-      valA = valA.toString().toLowerCase();
-      valB = valB.toString().toLowerCase();
-    }
-
-    if (valA < valB) return currentSort.dir === 'asc' ? -1 : 1;
-    if (valA > valB) return currentSort.dir === 'asc' ? 1 : -1;
-    return 0;
-  });
-
-  currentPage = 0; // Reiniciar a la primera página tras ordenar
-  renderTable(filtered, 0);
-  
-  // Opcional: Mostrar feedback visual en consola o podrías añadir clases CSS al TH
-  console.log(`Ordenado por ${key} en dirección ${currentSort.dir}`);
+function showPage(pageId, el) {
+  document.querySelectorAll('.content-page').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + pageId).style.display = 'block';
+  el.classList.add('active');
+  if(pageId === 'nomina') renderNomina();
 }
 
-/* Asegúrate de que la función renderTable y filterTable sigan existiendo. 
-  La lógica de filtrado ahora trabajará sobre la lista ordenada.
-*/
+function toggleConfig() {
+  const p = document.getElementById('config-panel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+async function loadSheet() {
+  const url = document.getElementById('sheet-url').value || localStorage.getItem('rh_url');
+  if(!url) return toggleConfig();
+  localStorage.setItem('rh_url', url);
+  
+  try {
+    const res = await fetch(url);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    
+    allEmployees = rows.map(r => {
+      const salDiario = parseFloat(r['Salario diario'] || 0) || 0;
+      let ant = 0;
+      if(r['Fecha de alta']) {
+        const [d,m,y] = r['Fecha de alta'].split('/');
+        ant = ((new Date() - new Date(y, m-1, d)) / (1000*60*60*24*365)).toFixed(1);
+      }
+      return {
+        codigo: r['Código'] || '',
+        nombre: r['Nombre'] + ' ' + (r['Apellido paterno'] || ''),
+        area: r['AREA'] || 'N/A',
+        cdn: r['Departamento'] || 'N/A',
+        puesto: r['Puesto'] || 'N/A',
+        estado: r['Entidad federativa de domicilio'] || 'N/A',
+        sal_mensual: salDiario * 30,
+        antiguedad: parseFloat(ant) || 0,
+        estatus: r['Estatus empleado'] || 'A',
+        fechaBaja: r['Fecha de baja'] || null
+      };
+    }).filter(e => e.nombre.trim() !== "");
+
+    updateDashboard();
+    document.getElementById('config-panel').style.display = 'none';
+  } catch(e) { console.error(e); }
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+  return lines.slice(1).map(line => {
+    const vals = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (vals[i] || "").replace(/"/g, '').trim());
+    return obj;
+  });
+}
+
+function updateDashboard() {
+  filtered = allEmployees.filter(e => e.estatus === 'A');
+  const nominaTotal = filtered.reduce((s, e) => s + e.sal_mensual, 0);
+  
+  document.getElementById('k-activos').textContent = filtered.length;
+  document.getElementById('k-cdns').textContent = new Set(filtered.map(e => e.cdn)).size;
+  document.getElementById('k-nomina').textContent = '$' + Math.round(nominaTotal).toLocaleString();
+  document.getElementById('k-ant').textContent = (filtered.reduce((s,e)=>s+e.antiguedad,0)/filtered.length || 0).toFixed(1) + ' a';
+  document.getElementById('k-hist').textContent = allEmployees.length;
+  document.getElementById('topbar-sub').textContent = `${filtered.length} empleados activos encontrados`;
+
+  renderCharts();
+  filterTable();
+}
+
+// FILTRADO ACTIVO
+function quickFilter(campo, valor) {
+  filtered = allEmployees.filter(e => e.estatus === 'A' && e[campo] === valor);
+  document.getElementById('topbar-sub').innerHTML = `Filtrado por ${valor} <span onclick="updateDashboard()" style="color:var(--accent3); cursor:pointer; text-decoration:underline; margin-left:10px">[Limpiar]</span>`;
+  renderTable(filtered);
+}
+
+// ORDENACIÓN
+function sortTable(key) {
+  currentSort.dir = (currentSort.key === key && currentSort.dir === 'asc') ? 'desc' : 'asc';
+  currentSort.key = key;
+  filtered.sort((a, b) => {
+    let v1 = a[key], v2 = b[key];
+    if (typeof v1 === 'string') { v1 = v1.toLowerCase(); v2 = v2.toLowerCase(); }
+    if (v1 < v2) return currentSort.dir === 'asc' ? -1 : 1;
+    if (v1 > v2) return currentSort.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+  renderTable(filtered);
+}
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const res = filtered.filter(e => e.nombre.toLowerCase().includes(q) || e.codigo.includes(q));
+  renderTable(res);
+}
+
+function renderTable(data) {
+  const tb = document.getElementById('empTable');
+  tb.innerHTML = data.slice(0, 50).map(e => `
+    <tr>
+      <td><b>${e.nombre}</b><br><small style="color:var(--muted)">${e.codigo}</small></td>
+      <td class="clickable-cell" onclick="quickFilter('area','${e.area}')"><span class="area-pill" style="background:rgba(108,99,255,0.1)">${e.area}</span></td>
+      <td class="clickable-cell" onclick="quickFilter('puesto','${e.puesto}')">${e.puesto}</td>
+      <td class="clickable-cell" onclick="quickFilter('cdn','${e.cdn}')">${e.cdn}</td>
+      <td>${e.estado}</td>
+      <td>${e.antiguedad} años</td>
+      <td>$${Math.round(e.sal_mensual).toLocaleString()}</td>
+    </tr>
+  `).join('');
+  document.getElementById('countBadge').textContent = `${data.length} registros`;
+}
+
+function renderNomina() {
+  const key = document.getElementById('groupSelector').value;
+  const activos = allEmployees.filter(e => e.estatus === 'A');
+  const groups = {};
+  activos.forEach(e => {
+    if(!groups[e[key]]) groups[e[key]] = { n: 0, sum: 0 };
+    groups[e[key]].n++;
+    groups[e[key]].sum += e.sal_mensual;
+  });
+  document.getElementById('nominaBody').innerHTML = Object.keys(groups).sort().map(k => `
+    <tr>
+      <td><b>${k}</b></td>
+      <td>${groups[k].n}</td>
+      <td>$${Math.round(groups[k].sum/groups[k].n).toLocaleString()}</td>
+      <td style="color:var(--accent2); font-weight:600">$${Math.round(groups[k].sum).toLocaleString()}</td>
+    </tr>
+  `).join('');
+}
+
+function renderCharts() {
+  if(charts.area) charts.area.destroy();
+  if(charts.bajas) charts.bajas.destroy();
+
+  const areaCounts = {};
+  filtered.forEach(e => areaCounts[e.area] = (areaCounts[e.area] || 0) + 1);
+
+  charts.area = new Chart(document.getElementById('areaChart'), {
+    type: 'doughnut',
+    data: { 
+      labels: Object.keys(areaCounts), 
+      datasets: [{ data: Object.values(areaCounts), backgroundColor: ['#6c63ff','#00d4aa','#ffd166','#ff6b6b','#4dabf7'] }] 
+    },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+
+  const mActual = new Array(12).fill(0), mPasado = new Array(12).fill(0);
+  const esteAño = new Date().getFullYear();
+  allEmployees.filter(e => e.fechaBaja).forEach(e => {
+    const f = new Date(e.fechaBaja);
+    if(f.getFullYear() === esteAño) mActual[f.getMonth()]++;
+    if(f.getFullYear() === esteAño - 1) mPasado[f.getMonth()]++;
+  });
+
+  charts.bajas = new Chart(document.getElementById('bajasChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+      datasets: [
+        { label: 'Bajas '+esteAño, data: mActual, backgroundColor: '#6c63ff' },
+        { label: 'Bajas '+(esteAño-1), data: mPasado, backgroundColor: 'rgba(255,255,255,0.05)' }
+      ]
+    },
+    options: { maintainAspectRatio: false }
+  });
+}
+
+window.onload = () => { if(localStorage.getItem('rh_url')) loadSheet(); };
 </script>
+</body>
+</html>
