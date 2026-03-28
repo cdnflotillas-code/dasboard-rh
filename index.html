@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard RH — Grupo Sierra</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0d0f14;--surface:#161922;--surface2:#1e2230;
+    --border:rgba(255,255,255,0.07);
+    --accent:#6c63ff;--accent2:#00d4aa;--accent3:#ff6b6b;--accent4:#ffd166;
+    --text:#e8eaf2;--muted:#7c82a0;
+    --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--radius:14px;
+  }
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+  .shell{display:flex;min-height:100vh}
+
+  /* Sidebar */
+  .sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;flex-shrink:0;position:sticky;top:0;height:100vh}
+  .logo{display:flex;align-items:center;gap:10px;padding:0 20px 28px;border-bottom:1px solid var(--border);margin-bottom:16px}
+  .logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .logo-text{font-size:15px;font-weight:600;letter-spacing:-.3px}
+  .logo-sub{font-size:11px;color:var(--muted)}
+  .nav-section{padding:0 12px;margin-bottom:8px}
+  .nav-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 8px;margin-bottom:4px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;margin-bottom:2px}
+  .nav-item:hover{background:var(--surface2);color:var(--text)}
+  .nav-item.active{background:rgba(108,99,255,.15);color:var(--accent)}
+  .nav-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .sidebar-footer{margin-top:auto;padding:16px 20px 0;border-top:1px solid var(--border)}
+  .user-chip{display:flex;align-items:center;gap:10px}
+  .s-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+  .user-name{font-size:13px;font-weight:500}
+  .user-role{font-size:11px;color:var(--muted)}
+
+  /* Main */
+  .main{flex:1;overflow:auto}
+  .topbar{padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:10;gap:16px}
+  .page-title{font-size:18px;font-weight:600;letter-spacing:-.4px}
+  .page-subtitle{font-size:12px;color:var(--muted);margin-top:2px}
+  .topbar-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .badge{display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 10px;border-radius:20px;font-family:var(--mono)}
+  .badge-live{background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.25);color:var(--accent2)}
+  .badge-demo{background:rgba(124,130,160,.1);border:1px solid rgba(124,130,160,.25);color:var(--muted)}
+  .pulse{width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+  .btn-refresh{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:12px;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all .15s}
+  .btn-refresh:hover{border-color:var(--accent);color:var(--accent)}
+  .content{padding:28px 32px}
+
+  /* Config panel */
+  #config-panel{background:var(--surface);border:1px solid rgba(108,99,255,.3);border-radius:var(--radius);padding:20px 24px;margin-bottom:24px;display:none}
+  #config-panel.open{display:block}
+  .config-title{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:12px}
+  .url-row{display:flex;gap:8px}
+  .url-input{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 14px;border-radius:8px;outline:none;transition:border-color .15s}
+  .url-input:focus{border-color:var(--accent)}
+  .url-input::placeholder{color:var(--muted)}
+  .btn-primary{background:var(--accent);color:#fff;font-family:var(--font);font-size:12px;font-weight:500;padding:8px 18px;border-radius:8px;border:none;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+  .btn-primary:hover{opacity:.85}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed}
+  .config-hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
+  .config-hint code{background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px;font-family:var(--mono);color:var(--accent2)}
+
+  /* Status */
+  #status-bar{display:none;margin-bottom:20px;padding:10px 16px;border-radius:8px;font-size:13px;align-items:center;gap:10px}
+  #status-bar.loading{background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);color:var(--accent);display:flex}
+  #status-bar.success{background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.2);color:var(--accent2);display:flex}
+  #status-bar.error{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);color:var(--accent3);display:flex}
+  .spin{width:14px;height:14px;border:2px solid rgba(108,99,255,.3);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* KPI */
+  .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+  .kpi-card:hover{border-color:rgba(255,255,255,.15);transform:translateY(-1px)}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0}
+  .kpi-card.c1::before{background:var(--accent)}
+  .kpi-card.c2::before{background:var(--accent2)}
+  .kpi-card.c3::before{background:var(--accent4)}
+  .kpi-card.c4::before{background:#4dabf7}
+  .kpi-card.c5::before{background:#ff9f43}
+  .kpi-card.c6::before{background:var(--accent3)}
+  .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+  .kpi-value{font-size:26px;font-weight:600;letter-spacing:-1px;line-height:1;margin-bottom:8px}
+  .kpi-delta{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-family:var(--mono);padding:2px 7px;border-radius:20px}
+  .delta-up{background:rgba(0,212,170,.1);color:var(--accent2)}
+  .delta-down{background:rgba(255,107,107,.1);color:var(--accent3)}
+  .delta-n{background:rgba(124,130,160,.1);color:var(--muted)}
+
+  /* Charts */
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
+  .chart-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+  .chart-title{font-size:14px;font-weight:600}
+  .chart-subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+  .chart-tag{font-size:10px;font-family:var(--mono);background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:3px 8px;border-radius:20px}
+  .chart-wrap{position:relative;height:200px}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+  .legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+  .cdn-list{display:flex;flex-direction:column;gap:9px;max-height:220px;overflow-y:auto}
+  .cdn-row{display:flex;align-items:center;gap:10px}
+  .cdn-name{font-size:12px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .cdn-bar-wrap{width:90px;height:5px;background:var(--surface2);border-radius:3px;flex-shrink:0}
+  .cdn-bar{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.22,1,.36,1)}
+  .cdn-n{font-size:11px;font-family:var(--mono);color:var(--muted);min-width:22px;text-align:right}
+
+  /* Stat row */
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+  .stat-label{font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
+  .stat-val{font-size:20px;font-weight:600;letter-spacing:-.5px}
+  .stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+  /* Table */
+  .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:28px}
+  .table-header{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .table-title{font-size:14px;font-weight:600;white-space:nowrap}
+  .table-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .search-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;padding:6px 12px;border-radius:8px;outline:none;width:200px;transition:border-color .15s}
+  .search-input:focus{border-color:var(--accent)}
+  .filter-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;padding:6px 10px;border-radius:8px;outline:none;cursor:pointer}
+  .count-badge{font-size:11px;font-family:var(--mono);color:var(--muted);white-space:nowrap}
+  table{width:100%;border-collapse:collapse}
+  thead th{padding:10px 18px;font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+  tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+  tbody tr:last-child{border-bottom:none}
+  tbody tr:hover{background:var(--surface2)}
+  tbody td{padding:11px 18px;font-size:13px}
+  .emp-cell{display:flex;align-items:center;gap:10px}
+  .emp-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+  .emp-name{font-weight:500;font-size:13px;white-space:nowrap}
+  .emp-id{font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .area-pill{display:inline-flex;align-items:center;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+  .a-REPARTO{background:rgba(108,99,255,.12);color:#a29bfe}
+  .a-VENTAS{background:rgba(0,212,170,.1);color:var(--accent2)}
+  .a-ADMINISTRACION{background:rgba(255,209,102,.1);color:var(--accent4)}
+  .a-ALMACEN{background:rgba(77,171,247,.1);color:#4dabf7}
+  .pag-row{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-top:1px solid var(--border)}
+  .pag-info{font-size:12px;color:var(--muted)}
+  .pag-btns{display:flex;gap:6px}
+  .pag-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:4px 12px;border-radius:6px;cursor:pointer;transition:all .15s}
+  .pag-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+  .pag-btn:disabled{opacity:.35;cursor:not-allowed}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .kpi-card{animation:fadeUp .4s ease both}
+  .kpi-card:nth-child(1){animation-delay:.04s}.kpi-card:nth-child(2){animation-delay:.08s}
+  .kpi-card:nth-child(3){animation-delay:.12s}.kpi-card:nth-child(4){animation-delay:.16s}
+  .kpi-card:nth-child(5){animation-delay:.20s}.kpi-card:nth-child(6){animation-delay:.24s}
+  .chart-card,.table-card,.stat-card{animation:fadeUp .45s .2s ease both}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">👥</div>
+      <div><div class="logo-text">PeopleOS</div><div class="logo-sub">Grupo Sierra</div></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Principal</div>
+      <div class="nav-item active"><div class="nav-dot" style="background:var(--accent)"></div>Dashboard</div>
+      <div class="nav-item"><div class="nav-dot" style="background:var(--muted)"></div>Empleados</div>
+      <div class="nav-item"><div class="nav-dot" style="background:var(--muted)"></div>CDN / Centros</div>
+      <div class="nav-item"><div class="nav-dot" style="background:var(--muted)"></div>Nómina</div>
+    </div>
+    <div class="nav-section" style="margin-top:8px">
+      <div class="nav-label">Análisis</div>
+      <div class="nav-item"><div class="nav-dot" style="background:var(--muted)"></div>Antigüedad</div>
+      <div class="nav-item"><div class="nav-dot" style="background:var(--muted)"></div>Rotación</div>
+      <div class="nav-item"><div class="nav-dot" style="background:var(--muted)"></div>Reportes</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="s-avatar">RH</div>
+        <div><div class="user-name">Dir. RH</div><div class="user-role">Grupo Sierra</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Dashboard de RH</div>
+        <div class="page-subtitle" id="topbar-sub">Cargando datos…</div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-refresh" onclick="toggleConfig()">⚙ Configurar Sheet</button>
+        <button class="btn-refresh" onclick="loadSheet()">↻ Actualizar</button>
+        <div class="badge badge-demo" id="source-badge">Demo</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Config panel -->
+      <div id="config-panel">
+        <div class="config-title">Conectar Google Sheets</div>
+        <div class="url-row">
+          <input type="text" class="url-input" id="sheet-url"
+            placeholder="https://docs.google.com/spreadsheets/d/TU_ID/pub?output=csv"
+            oninput="saveUrl()">
+          <button class="btn-primary" id="load-btn" onclick="loadSheet()">Conectar y cargar</button>
+        </div>
+        <div class="config-hint">
+          En Google Sheets: <code>Archivo</code> → <code>Compartir</code> → <code>Publicar en la web</code> → elige tu hoja → formato <code>CSV</code> → <code>Publicar</code> → copia la URL aquí.<br>
+          El dashboard guarda la URL en tu navegador, así que solo necesitas configurarla una vez.
+        </div>
+      </div>
+
+      <!-- Status bar -->
+      <div id="status-bar">
+        <div class="spin" id="spin-icon"></div>
+        <span id="status-text"></span>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card c1"><div class="kpi-label">Empleados activos</div><div class="kpi-value" id="k-activos">—</div><div class="kpi-delta delta-n" id="k-activos-d">—</div></div>
+        <div class="kpi-card c2"><div class="kpi-label">Centros CDN</div><div class="kpi-value" id="k-cdns">—</div><div class="kpi-delta delta-n" id="k-cdns-d">—</div></div>
+        <div class="kpi-card c3"><div class="kpi-label">Nómina mensual est.</div><div class="kpi-value" id="k-nomina">—</div><div class="kpi-delta delta-n" id="k-nomina-d">—</div></div>
+        <div class="kpi-card c4"><div class="kpi-label">Sal. diario prom.</div><div class="kpi-value" id="k-sal">—</div><div class="kpi-delta delta-n" id="k-sal-d">—</div></div>
+        <div class="kpi-card c5"><div class="kpi-label">Antigüedad prom.</div><div class="kpi-value" id="k-ant">—</div><div class="kpi-delta delta-n" id="k-ant-d">—</div></div>
+        <div class="kpi-card c6"><div class="kpi-label">Registro histórico</div><div class="kpi-value" id="k-hist">—</div><div class="kpi-delta delta-n" id="k-hist-d">—</div></div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-label">Género</div><div class="stat-val" id="s-genero">—</div><div class="stat-sub" id="s-genero-sub">—</div></div>
+        <div class="stat-card"><div class="stat-label">Contratación reciente</div><div class="stat-val" id="s-reciente" style="color:var(--accent2)">—</div><div class="stat-sub">Menos de 1 año</div></div>
+        <div class="stat-card"><div class="stat-label">Personal con +5 años</div><div class="stat-val" id="s-senior" style="color:var(--accent4)">—</div><div class="stat-sub" id="s-senior-sub">—</div></div>
+        <div class="stat-card"><div class="stat-label">Entidades federativas</div><div class="stat-val" id="s-estados" style="color:var(--accent)">—</div><div class="stat-sub" id="s-estados-sub">—</div></div>
+      </div>
+
+      <!-- Charts row 1 -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Empleados por área</div><div class="chart-subtitle" id="ct-area-sub">—</div></div>
+            <div class="chart-tag">activos</div>
+          </div>
+          <div class="chart-wrap"><canvas id="areaChart"></canvas></div>
+          <div class="legend" id="areaLegend"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Antigüedad de plantilla</div><div class="chart-subtitle">Tramos por años de servicio</div></div>
+            <div class="chart-tag">activos</div>
+          </div>
+          <div class="chart-wrap"><canvas id="antigChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Charts row 2 -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Empleados por CDN</div><div class="chart-subtitle">Top centros de distribución</div></div>
+            <div class="chart-tag" id="ct-cdn-tag">—</div>
+          </div>
+          <div class="cdn-list" id="cdnList"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Distribución por estado</div><div class="chart-subtitle">Entidad federativa de domicilio</div></div>
+            <div class="chart-tag">activos</div>
+          </div>
+          <div class="chart-wrap"><canvas id="estadoChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Directorio de empleados activos</div>
+          <div class="table-controls">
+            <input class="search-input" type="text" placeholder="Nombre, puesto, CDN, código…" id="searchInput" oninput="filterTable()">
+            <select class="filter-select" id="areaFilter" onchange="filterTable()">
+              <option value="">Todas las áreas</option>
+            </select>
+            <select class="filter-select" id="estadoFilter" onchange="filterTable()">
+              <option value="">Todos los estados</option>
+            </select>
+            <span class="count-badge" id="countBadge">—</span>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>Empleado</th><th>Área</th><th>Puesto</th>
+              <th>CDN / Centro</th><th>Estado</th>
+              <th>Fecha alta</th><th>Antigüedad</th><th>Sal. mensual</th>
+            </tr></thead>
+            <tbody id="empTable"></tbody>
+          </table>
+        </div>
+        <div class="pag-row">
+          <span class="pag-info" id="pagInfo">—</span>
+          <div class="pag-btns">
+            <button class="pag-btn" id="prevBtn" onclick="changePage(-1)" disabled>← Anterior</button>
+            <button class="pag-btn" id="nextBtn" onclick="changePage(1)" disabled>Siguiente →</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Paleta ─────────────────────────────────────────── */
+const AC='#6c63ff',AC2='#00d4aa',AC3='#ff6b6b',AC4='#ffd166',MT='#7c82a0';
+const AVCOLS=[AC,AC2,AC3,AC4,'#4dabf7','#ff9f43','#a29bfe','#55efc4','#fd79a8','#00b894'];
+const AREA_COLORS={REPARTO:AC,VENTAS:AC2,ADMINISTRACION:AC4,ALMACEN:'#4dabf7'};
+Chart.defaults.color=MT;
+Chart.defaults.font.family="'DM Sans',sans-serif";
+Chart.defaults.font.size=11;
+
+/* ── Estado global ──────────────────────────────────── */
+let allEmployees=[], filtered=[], currentPage=0;
+const PAGE=50;
+let chartArea=null, chartAntig=null, chartEstado=null;
+
+/* ── localStorage para URL ──────────────────────────── */
+const LS_KEY='rh_sheet_url';
+function saveUrl(){
+  const v=document.getElementById('sheet-url').value.trim();
+  if(v) localStorage.setItem(LS_KEY,v);
+}
+function getSavedUrl(){return localStorage.getItem(LS_KEY)||''}
+
+/* ── UI helpers ─────────────────────────────────────── */
+function toggleConfig(){
+  const p=document.getElementById('config-panel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open')){
+    const u=getSavedUrl();
+    if(u) document.getElementById('sheet-url').value=u;
+    document.getElementById('sheet-url').focus();
+  }
+}
+function showStatus(type,msg){
+  const bar=document.getElementById('status-bar');
+  bar.className=type;
+  document.getElementById('spin-icon').style.display=type==='loading'?'block':'none';
+  document.getElementById('status-text').textContent=msg;
+  if(type!=='loading') setTimeout(()=>{bar.style.display='none';},6000);
+}
+function setSourceBadge(live){
+  const b=document.getElementById('source-badge');
+  b.className='badge '+(live?'badge-live':'badge-demo');
+  b.innerHTML=live?'<div class="pulse"></div>Google Sheets':'Demo';
+}
+
+/* ── Parse CSV ──────────────────────────────────────── */
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/);
+  if(lines.length<2) return [];
+  const headers=lines[0].split(',').map(h=>h.replace(/"/g,'').trim());
+  return lines.slice(1).map(line=>{
+    const vals=[]; let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){inQ=!inQ;}
+      else if(c===','&&!inQ){vals.push(cur.trim());cur='';}
+      else cur+=c;
+    }
+    vals.push(cur.trim());
+    const obj={};
+    headers.forEach((h,i)=>{ obj[h]=(vals[i]||'').replace(/"/g,'').trim(); });
+    return obj;
+  }).filter(r=>r[headers[0]]);
+}
+
+/* ── Normaliza fila del CSV original ────────────────── */
+function normalizeRow(r){
+  const nombre=[r['Nombre']||'',r['Apellido paterno']||'',r['Apellido materno']||''].filter(Boolean).join(' ');
+  const salDiario=parseFloat(r['Salario diario']||0)||0;
+  let ant='';
+  try{
+    const alta=r['Fecha de alta']||'';
+    if(alta&&alta!=='30/12/1899'){
+      const [d,m,y]=alta.split('/');
+      const diff=(Date.now()-new Date(y,m-1,d).getTime())/(1000*60*60*24*365);
+      ant=diff.toFixed(1);
+    }
+  }catch(e){}
+  return{
+    codigo: r['Código']||r['Codigo']||r[Object.keys(r)[0]]||'',
+    nombre, area:r['AREA']||'',
+    cdn:r['Departamento']||'',
+    puesto:r['Puesto']||'',
+    alta:r['Fecha de alta']||'',
+    sexo:r['Sexo']||'',
+    estado:r['Entidad federativa de domicilio']||'',
+    sal_diario:salDiario,
+    sal_mensual:salDiario*30,
+    estatus:r['Estatus empleado']||'A',
+    antiguedad:ant
+  };
+}
+
+/* ── Carga desde Sheet ──────────────────────────────── */
+async function loadSheet(){
+  let url=(document.getElementById('sheet-url').value||getSavedUrl()).trim();
+  if(!url){
+    loadDemo();
+    return;
+  }
+  // Normalizar URL a CSV
+  if(!url.includes('output=csv')){
+    const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if(m) url=`https://docs.google.com/spreadsheets/d/${m[1]}/pub?output=csv`;
+  }
+  showStatus('loading','Conectando con Google Sheets…');
+  document.getElementById('load-btn').disabled=true;
+  document.getElementById('config-panel').classList.remove('open');
+  try{
+    const res=await fetch(url);
+    if(!res.ok) throw new Error(`Error HTTP ${res.status}`);
+    const text=await res.text();
+    if(text.trim().startsWith('<')) throw new Error('El archivo no está publicado como CSV. Revisa los pasos en ⚙ Configurar Sheet.');
+    const raw=parseCSV(text);
+    if(!raw.length) throw new Error('El archivo está vacío o no tiene el formato esperado.');
+    const activos=raw.map(normalizeRow).filter(e=>e.estatus==='A'&&e.nombre);
+    if(!activos.length) throw new Error('No se encontraron empleados con Estatus = A (Activo).');
+    localStorage.setItem(LS_KEY,url);
+    renderDashboard(activos, raw.length, true);
+    showStatus('success',`✓ ${activos.length} empleados activos cargados desde Google Sheets · ${new Date().toLocaleTimeString('es-MX')}`);
+  }catch(err){
+    showStatus('error',err.message);
+  }finally{
+    document.getElementById('load-btn').disabled=false;
+  }
+}
+
+/* ── Demo data (tu catálogo real) ───────────────────── */
+const DEMO_EMPLOYEES=[{"codigo":"0915","nombre":"JORGE ANTONIO SANTANA GALINDO","area":"REPARTO","cdn":"COMX Y DISTX DEL NAYAR SXAX DE CXVX","puesto":"CHOFER REPARTIDOR","alta":"26/05/2008","sexo":"M","estado":"NAY","sal_diario":370.9,"sal_mensual":11127,"estatus":"A","antiguedad":"17.8"},{"codigo":"1275","nombre":"HECTOR SERVANDO SIERRA DIAZ","area":"ADMINISTRACION","cdn":"COMX Y DISTX DEL NAYAR SXAX DE CXVX","puesto":"GERENTE GENERAL","alta":"02/07/2012","sexo":"M","estado":"NAY","sal_diario":3982.63,"sal_mensual":119479,"estatus":"A","antiguedad":"13.7"},{"codigo":"1348","nombre":"YERED ARBEY HERNANDEZ CARRILLO","area":"VENTAS","cdn":"CDN MAZATLAN","puesto":"JEFE DE VENTAS","alta":"04/11/2013","sexo":"M","estado":"SIN","sal_diario":690.79,"sal_mensual":20724,"estatus":"A","antiguedad":"12.4"},{"codigo":"1362","nombre":"JORGE FERNANDO OJEDA VILLEGAS","area":"VENTAS","cdn":"CDN PUERTO VALLARTA","puesto":"JEFE DE VENTAS","alta":"02/12/2013","sexo":"M","estado":"JAL","sal_diario":977.72,"sal_mensual":29332,"estatus":"A","antiguedad":"12.3"},{"codigo":"1457","nombre":"GERMAN OCTAVIO ARCADIA LIZAOLA","area":"ADMINISTRACION","cdn":"COMX Y DISTX DEL NAYAR SXAX DE CXVX","puesto":"ENCARGADO DE SISTEMAS","alta":"01/12/2014","sexo":"M","estado":"NAY","sal_diario":1110.2,"sal_mensual":33306,"estatus":"A","antiguedad":"11.3"},{"codigo":"1447","nombre":"NALLELY GUADALUPE MONTELONGO QUIROZ","area":"ADMINISTRACION","cdn":"CDN MAZATLAN","puesto":"ADMINISTRADOR","alta":"01/12/2014","sexo":"F","estado":"SIN","sal_diario":446.91,"sal_mensual":13407,"estatus":"A","antiguedad":"11.3"},{"codigo":"1579","nombre":"JUAN CARLOS HERRERA CESEÑA","area":"VENTAS","cdn":"CDN LA PAZ","puesto":"JEFE DE VENTAS","alta":"02/02/2016","sexo":"M","estado":"BCS","sal_diario":493.42,"sal_mensual":14803,"estatus":"A","antiguedad":"10.2"},{"codigo":"1693","nombre":"JULIAN MANJARREZ HERNANDEZ","area":"ADMINISTRACION","cdn":"CDN CULIACAN","puesto":"JEFE ADMINISTRATIVO","alta":"28/11/2016","sexo":"M","estado":"SIN","sal_diario":478.63,"sal_mensual":14359,"estatus":"A","antiguedad":"9.3"},{"codigo":"2191","nombre":"JOSE ALFREDO BURCIAGA ONTIVEROS","area":"ADMINISTRACION","cdn":"CDN DURANGO","puesto":"JEFE ADMINISTRATIVO","alta":"23/07/2018","sexo":"M","estado":"DUR","sal_diario":427.83,"sal_mensual":12835,"estatus":"A","antiguedad":"7.7"},{"codigo":"2197","nombre":"MIGUEL ANGEL ALVARADO VILLA","area":"VENTAS","cdn":"CDN DURANGO","puesto":"JEFE DE VENTAS","alta":"23/07/2018","sexo":"M","estado":"DUR","sal_diario":328.95,"sal_mensual":9869,"estatus":"A","antiguedad":"7.7"},{"codigo":"3697","nombre":"JORGE LUIS DEWETT GONZALEZ","area":"VENTAS","cdn":"CDN MOCHIS","puesto":"GERENTE DE VENTAS","alta":"06/03/2023","sexo":"M","estado":"SIN","sal_diario":657.89,"sal_mensual":19737,"estatus":"A","antiguedad":"3.1"},{"codigo":"3764","nombre":"ULISES AGUSTIN AGUIAR QUINTERO","area":"ADMINISTRACION","cdn":"COMX Y DISTX DEL NAYAR SXAX DE CXVX","puesto":"AUDITOR","alta":"10/04/2023","sexo":"M","estado":"NAY","sal_diario":1052.64,"sal_mensual":31579,"estatus":"A","antiguedad":"3.0"},{"codigo":"3820","nombre":"JUAN CARLOS SIERRA ESPINOSA","area":"ADMINISTRACION","cdn":"CDN PUERTO VALLARTA","puesto":"AUDITOR INTERNO","alta":"05/06/2023","sexo":"M","estado":"","sal_diario":1136.12,"sal_mensual":34084,"estatus":"A","antiguedad":"2.8"},{"codigo":"4309","nombre":"ADAN NOE GUEVARA CASTILLO","area":"VENTAS","cdn":"CDN CULIACAN","puesto":"GERENTE DE VENTAS","alta":"31/07/2024","sexo":"M","estado":"SIN","sal_diario":687.59,"sal_mensual":20628,"estatus":"A","antiguedad":"1.7"},{"codigo":"4464","nombre":"NELLY XIUHNENETL CABRERA CONTRERAS","area":"ADMINISTRACION","cdn":"COMX Y DISTX DEL NAYAR SXAX DE CXVX","puesto":"GERENTE DE RECURSOS HUMANOS","alta":"05/02/2025","sexo":"F","estado":"NAY","sal_diario":690.79,"sal_mensual":20724,"estatus":"A","antiguedad":"1.1"},{"codigo":"1085","nombre":"OSCAR SAUL MEDINA RAMIREZ","area":"ALMACEN","cdn":"COMX Y DISTX DEL NAYAR SXAX DE CXVX","puesto":"JEFE DE ALMACEN","alta":"26/10/2009","sexo":"M","estado":"NAY","sal_diario":493.42,"sal_mensual":14803,"estatus":"A","antiguedad":"16.4"},{"codigo":"1404","nombre":"LUIS ARMANDO GARCIA NAVARRO","area":"ALMACEN","cdn":"CDN PUERTO VALLARTA","puesto":"JEFE DE ALMACEN","alta":"30/06/2014","sexo":"M","estado":"JAL","sal_diario":328.95,"sal_mensual":9869,"estatus":"A","antiguedad":"11.7"},{"codigo":"1959","nombre":"FRANCISCO JAVIER CORONA ESPINOZA","area":"ALMACEN","cdn":"CDN MAZATLAN","puesto":"JEFE DE ALMACEN","alta":"17/10/2017","sexo":"M","estado":"SIN","sal_diario":328.94,"sal_mensual":9868,"estatus":"A","antiguedad":"8.4"},{"codigo":"3848","nombre":"JUAN FRANCISCO DELGADO IBARRA","area":"ALMACEN","cdn":"CDN CULIACAN","puesto":"JEFE DE ALMACEN","alta":"03/07/2023","sexo":"M","estado":"SIN","sal_diario":427.63,"sal_mensual":12829,"estatus":"A","antiguedad":"2.7"},{"codigo":"4892","nombre":"EDGAR JAVIER ROSALES MORENO","area":"ADMINISTRACION","cdn":"CDN DURANGO","puesto":"JEFE ADMINISTRATIVO","alta":"10/03/2026","sexo":"M","estado":"DUR","sal_diario":460.52,"sal_mensual":13816,"estatus":"A","antiguedad":"0.0"}];
+
+// Completar con registros representativos para el demo
+const DEMO_EXTRA=[];
+const cdnNames=['COMX Y DISTX DEL NAYAR SXAX DE CXVX','CDN PUERTO VALLARTA','CDN CULIACAN','CDN DURANGO','CDN MAZATLAN','CDN LA PAZ','CDN MOCHIS','CDN LOS CABOS'];
+const areas=['REPARTO','VENTAS','ADMINISTRACION','ALMACEN'];
+const puestos={REPARTO:['CHOFER DE REPARTO','AUXILIAR DE REPARTO','CHOFER REPARTIDOR'],VENTAS:['PREVENTISTA','PREVENTA','SUPERVISOR DE VENTAS'],ADMINISTRACION:['COLABORADOR','JEFE ADMINISTRATIVO','AUXILIAR CONTABLE'],ALMACEN:['AUXILIAR DE ALMACEN','JEFE DE ALMACEN','SUBJEFE DE ALMACEN']};
+const estados=['NAY','SIN','JAL','BCS','DUR'];
+const nombres=[['CARLOS','MARTINEZ'],['ANA','LOPEZ'],['JOSE','GARCIA'],['MARIA','RODRIGUEZ'],['LUIS','HERNANDEZ'],['ROSA','PEREZ'],['MIGUEL','GONZALEZ'],['LAURA','SANCHEZ'],['PEDRO','RAMIREZ'],['DIANA','FLORES'],['JUAN','TORRES'],['ELENA','VARGAS'],['FRANCISCO','MORENO'],['PATRICIA','JIMENEZ'],['ROBERTO','REYES'],['CARMEN','GUTIERREZ'],['ANTONIO','DIAZ'],['BEATRIZ','MENDOZA'],['SALVADOR','CASTRO'],['IRENE','MEDINA'],['EDGAR','RUIZ'],['VERONICA','ORTIZ'],['ANDRES','SILVA'],['CLAUDIA','RAMOS'],['GABRIEL','AGUILAR'],['SOFIA','HERRERA'],['ENRIQUE','CAMPOS'],['ADRIANA','RIOS'],['OSCAR','VEGA'],['JESSICA','LUNA']];
+let code=2000;
+for(let i=0;i<354;i++){
+  const area=areas[i%4];
+  const n=nombres[i%nombres.length];
+  const altaYear=2020+Math.floor(i/80);
+  const altaMonth=String((i%12)+1).padStart(2,'0');
+  const ant=(2026-altaYear+((parseInt(altaMonth)<3)?0:-0.5)).toFixed(1);
+  DEMO_EXTRA.push({
+    codigo:String(code++).padStart(4,'0'),
+    nombre:`${n[0]} ${n[1]} ${nombres[(i+5)%nombres.length][1]}`,
+    area, cdn:cdnNames[i%cdnNames.length],
+    puesto:puestos[area][i%3],
+    alta:`${String((i%28)+1).padStart(2,'0')}/${altaMonth}/${altaYear}`,
+    sexo:i%5===0?'F':'M', estado:estados[i%5],
+    sal_diario:315+Math.round((i%12)*10),
+    sal_mensual:(315+Math.round((i%12)*10))*30,
+    estatus:'A', antiguedad:ant
+  });
+}
+const FULL_DEMO=[...DEMO_EMPLOYEES,...DEMO_EXTRA];
+
+function loadDemo(){
+  renderDashboard(FULL_DEMO, 3709, false);
+  document.getElementById('status-text').textContent='';
+  document.getElementById('status-bar').style.display='none';
+}
+
+/* ── Render dashboard ───────────────────────────────── */
+function renderDashboard(activos, totalHist, isLive){
+  allEmployees=activos;
+  filtered=activos;
+  currentPage=0;
+
+  const total=activos.length;
+  const nomina=activos.reduce((s,e)=>s+e.sal_mensual,0);
+  const salDiarios=activos.filter(e=>e.sal_diario>0).map(e=>e.sal_diario);
+  const salProm=salDiarios.length?salDiarios.reduce((a,b)=>a+b,0)/salDiarios.length:0;
+
+  const ants=activos.filter(e=>parseFloat(e.antiguedad)>0).map(e=>parseFloat(e.antiguedad));
+  const antProm=ants.length?ants.reduce((a,b)=>a+b,0)/ants.length:0;
+
+  const hombres=activos.filter(e=>e.sexo==='M').length;
+  const mujeres=activos.filter(e=>e.sexo==='F').length;
+  const recientes=activos.filter(e=>parseFloat(e.antiguedad)<1).length;
+  const seniors=activos.filter(e=>parseFloat(e.antiguedad)>=5).length;
+
+  const cdnSet=new Set(activos.map(e=>e.cdn).filter(Boolean));
+  const estadosSet=[...new Set(activos.map(e=>e.estado).filter(Boolean))];
+
+  // KPIs
+  document.getElementById('k-activos').textContent=total;
+  document.getElementById('k-activos-d').textContent=`de ${totalHist.toLocaleString()} históricos`;
+  document.getElementById('k-activos-d').className='kpi-delta delta-up';
+  document.getElementById('k-cdns').textContent=cdnSet.size;
+  document.getElementById('k-cdns-d').textContent='Plazas activas';
+  const nominaFmt=nomina>=1e6?'$'+(nomina/1e6).toFixed(1)+'M':'$'+(nomina/1e3).toFixed(0)+'K';
+  document.getElementById('k-nomina').textContent=nominaFmt;
+  document.getElementById('k-nomina-d').textContent='Salario diario × 30';
+  document.getElementById('k-sal').textContent='$'+Math.round(salProm);
+  document.getElementById('k-sal-d').textContent='Promedio activos';
+  document.getElementById('k-ant').textContent=antProm.toFixed(1)+' a';
+  document.getElementById('k-ant-d').textContent='Años promedio';
+  document.getElementById('k-hist').textContent=totalHist.toLocaleString();
+  document.getElementById('k-hist-d').textContent=(totalHist-total).toLocaleString()+' bajas acum.';
+  document.getElementById('k-hist-d').className='kpi-delta delta-down';
+
+  // Stat cards
+  document.getElementById('s-genero').innerHTML=`<span style="color:#4dabf7">${hombres}H</span> <span style="font-size:16px;color:#fd79a8">/ ${mujeres}M</span>`;
+  document.getElementById('s-genero-sub').textContent=`${Math.round(hombres/total*100)}% H · ${Math.round(mujeres/total*100)}% M`;
+  document.getElementById('s-reciente').textContent=recientes;
+  document.getElementById('s-senior').textContent=seniors;
+  document.getElementById('s-senior-sub').textContent=`${Math.round(seniors/total*100)}% de la plantilla`;
+  document.getElementById('s-estados').textContent=estadosSet.length;
+  document.getElementById('s-estados-sub').textContent=estadosSet.slice(0,5).join(' · ')+(estadosSet.length>5?'…':'');
+
+  // Topbar
+  document.getElementById('topbar-sub').textContent=`${total} empleados activos · Actualizado ${new Date().toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'})}`;
+  setSourceBadge(isLive);
+
+  // Gráficas
+  buildCharts(activos);
+
+  // Filtros dinámicos
+  const areaF=document.getElementById('areaFilter');
+  const edoF=document.getElementById('estadoFilter');
+  const areasUniq=[...new Set(activos.map(e=>e.area).filter(Boolean))].sort();
+  const edosUniq=[...new Set(activos.map(e=>e.estado).filter(Boolean))].sort();
+  areaF.innerHTML='<option value="">Todas las áreas</option>'+areasUniq.map(a=>`<option>${a}</option>`).join('');
+  edoF.innerHTML='<option value="">Todos los estados</option>'+edosUniq.map(e=>`<option>${e}</option>`).join('');
+
+  renderTable(activos,0);
+}
+
+/* ── Gráficas ───────────────────────────────────────── */
+function buildCharts(activos){
+  // Áreas
+  const areaCounts={};
+  activos.forEach(e=>{ if(e.area) areaCounts[e.area]=(areaCounts[e.area]||0)+1; });
+  const aLabels=Object.keys(areaCounts).sort((a,b)=>areaCounts[b]-areaCounts[a]);
+  const aVals=aLabels.map(a=>areaCounts[a]);
+  const aColors=aLabels.map(a=>AREA_COLORS[a]||MT);
+  if(chartArea) chartArea.destroy();
+  chartArea=new Chart(document.getElementById('areaChart'),{
+    type:'doughnut',
+    data:{labels:aLabels,datasets:[{data:aVals,backgroundColor:aColors.map(c=>c+'33'),borderColor:aColors,borderWidth:2,hoverBorderWidth:3}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false}}}
+  });
+  const leg=document.getElementById('areaLegend');
+  leg.innerHTML='';
+  document.getElementById('ct-area-sub').textContent=`${activos.length} activos`;
+  aLabels.forEach((l,i)=>{
+    const pct=Math.round(aVals[i]/activos.length*100);
+    leg.innerHTML+=`<div class="legend-item"><div class="legend-dot" style="background:${aColors[i]}"></div>${l} <span style="color:var(--text);font-weight:500;margin-left:4px">${aVals[i]}</span> (${pct}%)</div>`;
+  });
+
+  // Antigüedad
+  const tramos={'<1 año':0,'1-3 años':0,'3-5 años':0,'5-10 años':0,'+10 años':0};
+  activos.forEach(e=>{
+    const a=parseFloat(e.antiguedad);
+    if(a<1) tramos['<1 año']++;
+    else if(a<3) tramos['1-3 años']++;
+    else if(a<5) tramos['3-5 años']++;
+    else if(a<10) tramos['5-10 años']++;
+    else tramos['+10 años']++;
+  });
+  if(chartAntig) chartAntig.destroy();
+  chartAntig=new Chart(document.getElementById('antigChart'),{
+    type:'bar',
+    data:{labels:Object.keys(tramos),datasets:[{data:Object.values(tramos),
+      backgroundColor:[AC3+'33',AC4+'33',AC+'33','#4dabf733',AC2+'33'],
+      borderColor:[AC3,AC4,AC,'#4dabf7',AC2],borderWidth:1.5,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{color:MT}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:MT,stepSize:Math.ceil(activos.length/10)}}}}
+  });
+
+  // CDN bars
+  const cdnCounts={};
+  activos.forEach(e=>{ if(e.cdn) cdnCounts[e.cdn]=(cdnCounts[e.cdn]||0)+1; });
+  const cdnSorted=Object.entries(cdnCounts).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  const maxCDN=cdnSorted[0]?.[1]||1;
+  const cdnList=document.getElementById('cdnList');
+  cdnList.innerHTML='';
+  document.getElementById('ct-cdn-tag').textContent=`${cdnSorted.length} CDN`;
+  cdnSorted.forEach(([name,n],i)=>{
+    const col=AVCOLS[i%AVCOLS.length];
+    const label=name.replace('COMX Y DISTX DEL NAYAR SXAX DE CXVX','CDN Tepic / Nayar').replace('CDNXMART','CDN MART').replace('CDN MART ','').replace('CDN ','');
+    cdnList.innerHTML+=`<div class="cdn-row"><span class="cdn-name" title="${name}">${label}</span><div class="cdn-bar-wrap"><div class="cdn-bar" style="width:${Math.round(n/maxCDN*100)}%;background:${col}"></div></div><span class="cdn-n">${n}</span></div>`;
+  });
+
+  // Estados
+  const edoCounts={};
+  activos.forEach(e=>{ if(e.estado) edoCounts[e.estado]=(edoCounts[e.estado]||0)+1; });
+  const edoSorted=Object.entries(edoCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(chartEstado) chartEstado.destroy();
+  chartEstado=new Chart(document.getElementById('estadoChart'),{
+    type:'bar',
+    data:{labels:edoSorted.map(x=>x[0]),datasets:[{data:edoSorted.map(x=>x[1]),
+      backgroundColor:AVCOLS.slice(0,edoSorted.length).map(c=>c+'33'),
+      borderColor:AVCOLS.slice(0,edoSorted.length),borderWidth:1.5,borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:MT}},y:{grid:{display:false},ticks:{color:MT}}}}
+  });
+}
+
+/* ── Tabla ──────────────────────────────────────────── */
+function renderTable(data,page){
+  const tb=document.getElementById('empTable');
+  const start=page*PAGE, end=Math.min(start+PAGE,data.length);
+  const slice=data.slice(start,end);
+  if(!slice.length){
+    tb.innerHTML='<tr><td colspan="8" style="padding:32px;text-align:center;color:var(--muted)">Sin resultados para este filtro</td></tr>';
+    document.getElementById('countBadge').textContent='0 empleados';
+    document.getElementById('pagInfo').textContent='—';
+    document.getElementById('prevBtn').disabled=true;
+    document.getElementById('nextBtn').disabled=true;
+    return;
+  }
+  tb.innerHTML=slice.map((e,i)=>{
+    const init=e.nombre.split(' ').slice(0,2).map(n=>n[0]||'').join('').toUpperCase()||'??';
+    const col=AVCOLS[(start+i)%AVCOLS.length];
+    const sal=e.sal_mensual>=10000?'$'+Math.round(e.sal_mensual/1000)+'K':'$'+Math.round(e.sal_mensual).toLocaleString('es-MX');
+    const a=parseFloat(e.antiguedad);
+    const antColor=a>=5?AC2:a>=2?AC4:AC3;
+    const cdnShort=(e.cdn||'').replace('COMX Y DISTX DEL NAYAR SXAX DE CXVX','Tepic / Nayar').replace('CDNXMART ACAPONETA','Acaponeta').replace('CDN ','');
+    return `<tr>
+      <td><div class="emp-cell">
+        <div class="emp-avatar" style="background:${col}22;color:${col}">${init}</div>
+        <div><div class="emp-name">${e.nombre}</div><div class="emp-id">${e.codigo}</div></div>
+      </div></td>
+      <td><span class="area-pill a-${e.area}">${e.area||'—'}</span></td>
+      <td style="font-size:12px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.puesto||'—'}</td>
+      <td style="font-size:12px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cdnShort||'—'}</td>
+      <td style="font-size:12px">${e.estado||'—'}</td>
+      <td style="font-size:12px;color:var(--muted)">${e.alta||'—'}</td>
+      <td style="font-family:var(--mono);font-size:12px;color:${antColor}">${e.antiguedad||'—'} a</td>
+      <td style="font-family:var(--mono);font-size:12px">${sal}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('pagInfo').textContent=`Mostrando ${start+1}–${end} de ${data.length}`;
+  document.getElementById('countBadge').textContent=`${data.length} empleados`;
+  document.getElementById('prevBtn').disabled=page===0;
+  document.getElementById('nextBtn').disabled=end>=data.length;
+}
+
+function filterTable(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const area=document.getElementById('areaFilter').value;
+  const edo=document.getElementById('estadoFilter').value;
+  filtered=allEmployees.filter(e=>{
+    const mQ=!q||e.nombre.toLowerCase().includes(q)||e.puesto.toLowerCase().includes(q)||(e.cdn||'').toLowerCase().includes(q)||e.codigo.includes(q);
+    return mQ&&(!area||e.area===area)&&(!edo||e.estado===edo);
+  });
+  currentPage=0;
+  renderTable(filtered,0);
+}
+function changePage(d){currentPage+=d;renderTable(filtered,currentPage);}
+
+/* ── Init ───────────────────────────────────────────── */
+window.addEventListener('load',()=>{
+  const saved=getSavedUrl();
+  if(saved){
+    document.getElementById('sheet-url').value=saved;
+    loadSheet();
+  } else {
+    loadDemo();
+  }
+});
+</script>
+</body>
+</html>
