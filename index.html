@@ -3,127 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sierra People — Sistema de Inteligencia de Nómina</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<title>Sierra People — Intelligence & Sorting</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
     --bg:#0d0f14;--surface:#161922;--surface2:#1e2230;
     --border:rgba(255,255,255,0.07);
-    --accent:#6c63ff;--accent2:#00d4aa;--accent3:#ff6b6b;--accent4:#ffd166;
-    --text:#e8eaf2;--muted:#7c82a0;
+    --accent:#6c63ff;--accent2:#00d4aa;--text:#e8eaf2;--muted:#7c82a0;
     --font:'DM Sans',sans-serif;--radius:14px;
   }
   body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;overflow-x:hidden}
   .shell{display:flex;min-height:100vh}
-
-  /* Sidebar */
-  .sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;flex-shrink:0;position:sticky;top:0;height:100vh}
-  .logo{display:flex;align-items:center;gap:10px;padding:0 20px 28px;border-bottom:1px solid var(--border);margin-bottom:16px}
-  .logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
-  .logo-text{font-size:15px;font-weight:600}
-  .nav-section{padding:0 12px;margin-bottom:8px}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;margin-bottom:2px}
-  .nav-item:hover{background:var(--surface2);color:var(--text)}
-  .nav-item.active{background:rgba(108,99,255,.15);color:var(--accent)}
-
-  /* Main */
-  .main{flex:1;overflow:auto}
-  .topbar{padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:100}
-  .page-title{font-size:18px;font-weight:600}
-  .page-subtitle{font-size:12px;color:var(--muted)}
-  .btn-refresh{background:var(--accent);border:none;color:white;font-size:12px;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:500}
-  
-  .content{padding:28px 32px}
-
-  /* KPIs */
-  .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
-  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;border-top:2px solid var(--accent)}
-  .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
-  .kpi-value{font-size:20px;font-weight:600}
-
-  /* Table Dinámica */
-  .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:28px}
-  table{width:100%;border-collapse:collapse}
-  th{padding:12px 18px;font-size:11px;text-transform:uppercase;color:var(--muted);text-align:left;background:var(--surface2);border-bottom:1px solid var(--border)}
-  td{padding:12px 18px;font-size:13px;border-bottom:1px solid var(--border)}
-  
-  .row-udn { background: rgba(108,99,255,0.08); cursor: pointer; transition: background 0.2s; }
-  .row-udn:hover { background: rgba(108,99,255,0.15); }
-  .row-udn td { font-weight: 600; color: var(--text); border-left: 4px solid var(--accent); }
-  
-  .row-puesto { display: none; background: rgba(255,255,255,0.01); }
-  .row-puesto td:first-child { padding-left: 45px; color: var(--muted); position: relative; }
-  .row-puesto td:first-child::before { content: '└'; position: absolute; left: 25px; color: var(--border); }
-  
-  .toggle-icon { display: inline-block; width: 14px; transition: transform 0.2s; font-size: 10px; }
-  .expanded .toggle-icon { transform: rotate(90deg); }
+  .sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;position:sticky;top:0;height:100vh}
+  .logo{padding:0 20px 28px; font-weight:600; font-size:16px; border-bottom:1px solid var(--border); margin-bottom:16px}
+  .nav-item{padding:10px 20px; color:var(--muted); cursor:pointer; font-size:13px; transition:0.2s}
+  .nav-item:hover, .nav-item.active{color:var(--accent); background:rgba(108,99,255,0.1)}
+  .main{flex:1; padding:32px; overflow-y: auto;}
+  .topbar{margin-bottom:24px; display:flex; justify-content:space-between; align-items:center}
+  .btn-refresh{background:var(--accent); color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:500}
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-bottom:30px}
+  .kpi-card{background:var(--surface); padding:20px; border-radius:var(--radius); border:1px solid var(--border)}
+  .table-card{background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); overflow:hidden; margin-bottom:20px}
+  table{width:100%; border-collapse:collapse}
+  th{background:var(--surface2); padding:14px 18px; text-align:left; font-size:11px; text-transform:uppercase; color:var(--muted); cursor:pointer; transition: 0.2s; user-select: none;}
+  th:hover{color:var(--text); background: var(--surface)}
+  td{padding:14px 18px; border-bottom:1px solid var(--border); vertical-align: middle}
+  .row-udn{background:rgba(108,99,255,0.05); cursor:pointer; font-weight:600}
+  .row-puesto{display:none} 
+  .row-puesto td:first-child{padding-left:45px; color:var(--muted); position: relative}
+  .row-puesto td:first-child::before{content:'└'; position:absolute; left:25px; color:var(--border)}
+  .filter-bar{padding:15px; display:flex; gap:12px; background:var(--surface2); border-bottom:1px solid var(--border)}
+  select, input{background:var(--bg); border:1px solid var(--border); color:white; padding:10px; border-radius:8px; font-size:12px; outline:none}
+  .toggle-icon{display:inline-block; width:15px; transition:0.2s; font-size: 10px}
+  .expanded .toggle-icon{transform:rotate(90deg)}
+  .sort-icon{margin-left: 5px; opacity: 0.3; font-size: 10px}
 </style>
 </head>
 <body>
 <div class="shell">
   <aside class="sidebar">
-    <div class="logo"><div class="logo-icon">SP</div><div class="logo-text">Sierra People</div></div>
-    <div class="nav-section">
-      <div class="nav-item active" onclick="showPage('dashboard', this)">📊 General</div>
-      <div class="nav-item" onclick="showPage('nomina', this)">🧾 Análisis por UDN</div>
-    </div>
+    <div class="logo">Sierra People</div>
+    <div class="nav-item active" onclick="showPage('dashboard', this)">📊 Tabla General</div>
+    <div class="nav-item" onclick="showPage('nomina', this)">🧾 Análisis Dinámico</div>
   </aside>
-
   <main class="main">
     <div class="topbar">
-      <div><div class="page-title">Sierra People Intelligence</div><div class="page-subtitle" id="status-text">Cargando datos...</div></div>
-      <button class="btn-refresh" onclick="loadData()">↻ Sincronizar</button>
+      <div><h2 id="page-title">Capital Humano</h2><p id="status" style="font-size:12px; color:var(--muted)">Sincronizando...</p></div>
+      <button class="btn-refresh" onclick="loadData()">↻ Recargar Datos</button>
     </div>
 
-    <div class="content">
-      <div id="page-dashboard" class="content-page">
-        <div class="kpi-grid">
-            <div class="kpi-card"><div class="kpi-label">Activos</div><div class="kpi-value" id="k-activos">0</div></div>
-            <div class="kpi-card" style="border-color:var(--accent4)"><div class="kpi-label">Nómina Bruta</div><div class="kpi-value" id="k-total">$0</div></div>
-            <div class="kpi-card" style="border-color:var(--accent2)"><div class="kpi-label">Comisiones</div><div class="kpi-value" id="k-comis">$0</div></div>
-            <div class="kpi-card" style="border-color:#4dabf7"><div class="kpi-label">Antigüedad Prom.</div><div class="kpi-value" id="k-ant">0 a</div></div>
-            <div class="kpi-card" style="border-color:var(--accent3)"><div class="kpi-label">Bajas (Mes)</div><div class="kpi-value" id="k-bajas">0</div></div>
-            <div class="kpi-card"><div class="kpi-label">UDNs</div><div class="kpi-value" id="k-udn">0</div></div>
+    <div id="page-dashboard" class="content-page">
+      <div class="kpi-grid" id="kpi-container"></div>
+      <div class="table-card">
+        <div class="filter-bar">
+          <input type="text" id="searchMain" placeholder="Buscar por nombre o código..." oninput="renderMainTable()" style="width: 300px">
         </div>
-        
-        <div class="table-card">
-            <div style="padding:16px"><input type="text" id="searchInput" oninput="filterMainTable()" placeholder="Buscar empleado..." style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;outline:none;font-size:12px;width:300px"></div>
-            <table>
-                <thead>
-                    <tr><th>Empleado</th><th>UDN</th><th>Puesto</th><th>Antigüedad</th><th>Sueldo Total</th></tr>
-                </thead>
-                <tbody id="mainTableBody"></tbody>
-            </table>
-        </div>
+        <table id="mainTable">
+          <thead>
+            <tr>
+              <th onclick="sortMain('nombre')">Empleado <span class="sort-icon">↕</span></th>
+              <th onclick="sortMain('udn')">UDN <span class="sort-icon">↕</span></th>
+              <th onclick="sortMain('puesto')">Puesto <span class="sort-icon">↕</span></th>
+              <th onclick="sortMain('total')">Sueldo Bruto <span class="sort-icon">↕</span></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
+    </div>
 
-      <div id="page-nomina" class="content-page" style="display:none">
-        <div class="table-card">
-          <div style="padding:20px"><h3>Desglose Dinámico (UDN > Puesto)</h3><p style="font-size:12px; color:var(--muted)">Haz clic en una UDN para ver sus promedios.</p></div>
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 40%">UDN / Puesto</th>
-                <th>Personal</th>
-                <th>Sueldo Prom.</th>
-                <th>Comisión Prom.</th>
-                <th>Costo Total</th>
-              </tr>
-            </thead>
-            <tbody id="pivotTableBody"></tbody>
-          </table>
+    <div id="page-nomina" class="content-page" style="display:none">
+      <div class="table-card">
+        <div class="filter-bar">
+          <label style="font-size:12px; align-self:center">Filtrar por Puesto Específico:</label>
+          <select id="puestoFilter" onchange="renderPivotTable()"><option value="">Todos los puestos</option></select>
         </div>
+        <table>
+          <thead>
+            <tr>
+              <th>UDN / Puesto (Clic para expandir)</th>
+              <th>Personal</th>
+              <th>Sueldo Prom.</th>
+              <th>Comisión Prom.</th>
+              <th>Costo Bruto</th>
+            </tr>
+          </thead>
+          <tbody id="pivotBody"></tbody>
+        </table>
       </div>
     </div>
   </main>
 </div>
 
 <script>
-let allEmployees = [], filtered = [];
+let allEmployees = [];
+let sortState = { key: 'nombre', dir: 'asc' };
 
-// TUS ENLACES INTEGRADOS
 const URL_NOMINA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTsCSsKx9zvxGiXbhNSqbc8NTMUymv_w6osRHGydgRt8WIUjqC-O6QDupUFJtOdxcIIys3bNeUayOSr/pub?gid=1339015466&single=true&output=csv";
 const URL_EMPLEADOS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQfIxhbAy90BMi2mGCl_hrG8wYlUmhtdQK6umd0luAXsVuny-twtYfzLYnW_Bbg93jUjyv7k5l78Epa/pub?gid=292929104&single=true&output=csv";
 
@@ -146,142 +122,132 @@ function parseCSV(text) {
 }
 
 async function loadData() {
-  document.getElementById('status-text').textContent = "Sincronizando información...";
-
+  document.getElementById('status').textContent = "Conectando con Google Sheets...";
   try {
     const [resE, resN] = await Promise.all([fetch(URL_EMPLEADOS), fetch(URL_NOMINA)]);
     const rowsE = parseCSV(await resE.text());
     const rowsN = parseCSV(await resN.text());
-    const ahora = new Date();
 
     const statsNomina = {};
     rowsN.forEach(r => {
-        const cod = r['Código'];
-        if(!statsNomina[cod]) statsNomina[cod] = { sueldo: 0, comisiones: 0, total: 0 };
-        const monto = parseFloat(r['Total']) || 0;
-        const concepto = (r['Concepto'] || "").toLowerCase();
-        if(concepto.includes('sueldo')) statsNomina[cod].sueldo += monto;
-        else if(concepto.includes('comision')) statsNomina[cod].comisiones += monto;
-        statsNomina[cod].total += monto;
+      const cod = r['Código'] || r['codigo'];
+      if(!cod) return;
+      if(!statsNomina[cod]) statsNomina[cod] = { sueldo: 0, comisiones: 0, total: 0 };
+      
+      const monto = parseFloat((r['Total'] || "0").replace(/[^0-9.-]+/g,"")) || 0;
+      const concepto = (r['Concepto'] || "").toLowerCase();
+      
+      if(concepto.includes('sueldo')) statsNomina[cod].sueldo += monto;
+      else if(concepto.includes('comision')) statsNomina[cod].comisiones += monto;
+      statsNomina[cod].total += monto;
     });
 
     allEmployees = rowsE.map(r => {
-      const cod = r['Código'];
-      const estatus = r['Estatus empleado'] || 'A';
+      const cod = r['Código'] || r['codigo'];
       const c = statsNomina[cod] || { sueldo: 0, comisiones: 0, total: 0 };
-      
-      const pA = (r['Fecha de alta'] || "").split('/');
-      const fAlta = pA.length === 3 ? new Date(pA[2], pA[1]-1, pA[0]) : null;
-      
-      const pB = (r['Fecha de baja'] || "").split('/');
-      const fBaja = pB.length === 3 ? new Date(pB[2], pB[1]-1, pB[0]) : null;
-      const bajaReal = (fBaja && fBaja <= ahora) ? fBaja : null;
-
       return {
         codigo: cod,
         nombre: (r['Nombre'] || '') + ' ' + (r['Apellido paterno'] || ''),
-        area: r['AREA'] || 'Sin Área',
-        cdn: r['Departamento'] || 'Sin UDN',
+        udn: r['Departamento'] || 'Sin UDN',
         puesto: r['Puesto'] || 'Sin Puesto',
-        antiguedad: fAlta ? parseFloat(((ahora - fAlta) / (1000*60*60*24*365.25)).toFixed(1)) : 0,
-        estatus: estatus,
-        fechaBaja: (estatus === 'A') ? null : bajaReal,
         sueldo: c.sueldo,
         comisiones: c.comisiones,
-        totalBruto: c.total
+        total: c.total,
+        activo: (r['Estatus empleado'] || 'A') === 'A'
       };
-    }).filter(e => e.nombre.trim() !== "");
+    }).filter(e => e.nombre.trim() !== "" && e.activo);
+
+    const puestos = [...new Set(allEmployees.map(e => e.puesto))].sort();
+    document.getElementById('puestoFilter').innerHTML = '<option value="">Todos los puestos</option>' + puestos.map(p => `<option value="${p}">${p}</option>`).join('');
 
     renderAll();
-    document.getElementById('status-text').textContent = "Conexión en vivo: OK";
-  } catch(e) { 
-    console.error(e);
-    document.getElementById('status-text').textContent = "Error al conectar con Sheets";
+    document.getElementById('status').textContent = "Sincronizado con éxito";
+  } catch(e) {
+    document.getElementById('status').textContent = "Error de enlace";
   }
 }
 
-function renderAll() {
-    filtered = allEmployees.filter(e => e.estatus === 'A');
-    document.getElementById('k-activos').textContent = filtered.length;
-    document.getElementById('k-total').textContent = '$' + Math.round(filtered.reduce((s,e)=>s+e.totalBruto,0)).toLocaleString();
-    document.getElementById('k-comis').textContent = '$' + Math.round(filtered.reduce((s,e)=>s+e.comisiones,0)).toLocaleString();
-    document.getElementById('k-ant').textContent = (filtered.reduce((s,e)=>s+e.antiguedad,0)/filtered.length || 0).toFixed(1) + ' a';
-    document.getElementById('k-udn').textContent = new Set(filtered.map(e => e.cdn)).size;
-
-    renderMainTable(filtered);
-    renderPivotTable();
+function sortMain(key) {
+  if (sortState.key === key) {
+    sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortState.key = key;
+    sortState.dir = 'asc';
+  }
+  renderMainTable();
 }
 
-function renderMainTable(data) {
-    document.getElementById('mainTableBody').innerHTML = data.slice(0, 100).map(e => `
-        <tr>
-            <td><b>${e.nombre}</b><br><small style="color:var(--muted)">${e.codigo}</small></td>
-            <td>${e.cdn}</td>
-            <td>${e.puesto}</td>
-            <td>${e.antiguedad} a</td>
-            <td><b>$${Math.round(e.totalBruto).toLocaleString()}</b></td>
-        </tr>
-    `).join('');
+function renderMainTable() {
+  const q = document.getElementById('searchMain').value.toLowerCase();
+  let filtered = allEmployees.filter(e => e.nombre.toLowerCase().includes(q) || e.codigo.includes(q));
+
+  filtered.sort((a, b) => {
+    let valA = a[sortState.key];
+    let valB = b[sortState.key];
+    if (typeof valA === 'string') {
+      valA = valA.toLowerCase();
+      valB = valB.toLowerCase();
+    }
+    if (valA < valB) return sortState.dir === 'asc' ? -1 : 1;
+    if (valA > valB) return sortState.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  document.querySelector('#mainTable tbody').innerHTML = filtered.map(e => `
+    <tr>
+      <td><b>${e.nombre}</b><br><small style="color:var(--muted)">${e.codigo}</small></td>
+      <td>${e.udn}</td>
+      <td>${e.puesto}</td>
+      <td style="font-weight:600">$${Math.round(e.total).toLocaleString()}</td>
+    </tr>
+  `).join('');
+}
+
+function renderAll() {
+  const tTotal = allEmployees.reduce((s,e) => s + e.total, 0);
+  const tComis = allEmployees.reduce((s,e) => s + e.comisiones, 0);
+  document.getElementById('kpi-container').innerHTML = `
+    <div class="kpi-card"><div style="font-size:11px;color:var(--muted)">ACTIVOS</div><div style="font-size:24px;font-weight:600">${allEmployees.length}</div></div>
+    <div class="kpi-card"><div style="font-size:11px;color:var(--muted)">NÓMINA BRUTA</div><div style="font-size:24px;font-weight:600">$${Math.round(tTotal).toLocaleString()}</div></div>
+    <div class="kpi-card"><div style="font-size:11px;color:var(--muted)">COMISIONES</div><div style="font-size:24px;font-weight:600;color:var(--accent2)">$${Math.round(tComis).toLocaleString()}</div></div>
+  `;
+  renderMainTable();
+  renderPivotTable();
 }
 
 function renderPivotTable() {
-    const udns = {};
-    const activos = allEmployees.filter(e => e.estatus === 'A');
+  const pf = document.getElementById('puestoFilter').value;
+  const udns = {};
+  allEmployees.forEach(e => {
+    if (pf && e.puesto !== pf) return;
+    if (!udns[e.udn]) udns[e.udn] = { n:0, s:0, c:0, t:0, puestos:{} };
+    udns[e.udn].n++; udns[e.udn].s += e.sueldo; udns[e.udn].c += e.comisiones; udns[e.udn].t += e.total;
+    if (!udns[e.udn].puestos[e.puesto]) udns[e.udn].puestos[e.puesto] = { n:0, s:0, c:0, t:0 };
+    const p = udns[e.udn].puestos[e.puesto];
+    p.n++; p.s += e.sueldo; p.c += e.comisiones; p.t += e.total;
+  });
 
-    activos.forEach(e => {
-        if(!udns[e.cdn]) udns[e.cdn] = { n: 0, sueldo: 0, comisiones: 0, total: 0, puestos: {} };
-        udns[e.cdn].n++;
-        udns[e.cdn].sueldo += e.sueldo;
-        udns[e.cdn].comisiones += e.comisiones;
-        udns[e.cdn].total += e.totalBruto;
-
-        if(!udns[e.cdn].puestos[e.puesto]) udns[e.cdn].puestos[e.puesto] = { n: 0, sueldo: 0, comisiones: 0, total: 0 };
-        udns[e.cdn].puestos[e.puesto].n++;
-        udns[e.cdn].puestos[e.puesto].sueldo += e.sueldo;
-        udns[e.cdn].puestos[e.puesto].comisiones += e.comisiones;
-        udns[e.cdn].puestos[e.puesto].total += e.totalBruto;
+  let html = '';
+  Object.keys(udns).sort().forEach((uName, i) => {
+    const u = udns[uName];
+    const id = `row-${i}`;
+    html += `<tr class="row-udn" onclick="toggle('${id}', this)">
+      <td><span class="toggle-icon">▶</span> 🏢 ${uName}</td>
+      <td>${u.n}</td><td>$${Math.round(u.s/u.n).toLocaleString()}</td><td>$${Math.round(u.c/u.n).toLocaleString()}</td><td>$${Math.round(u.t).toLocaleString()}</td>
+    </tr>`;
+    Object.keys(u.puestos).forEach(pName => {
+      const p = u.puestos[pName];
+      html += `<tr class="row-puesto ${id}">
+        <td>${pName}</td><td>${p.n}</td><td>$${Math.round(p.s/p.n).toLocaleString()}</td><td>$${Math.round(p.c/p.n).toLocaleString()}</td><td>$${Math.round(p.t).toLocaleString()}</td>
+      </tr>`;
     });
-
-    let html = '';
-    Object.keys(udns).sort().forEach((udnName, idx) => {
-        const u = udns[udnName];
-        const udnId = `udn-${idx}`;
-        html += `
-        <tr class="row-udn" onclick="toggleUdn('${udnId}', this)">
-            <td><span class="toggle-icon">▶</span> 🏢 ${udnName}</td>
-            <td>${u.n}</td>
-            <td>$${Math.round(u.sueldo/u.n).toLocaleString()}</td>
-            <td>$${Math.round(u.comisiones/u.n).toLocaleString()}</td>
-            <td>$${Math.round(u.total).toLocaleString()}</td>
-        </tr>`;
-
-        Object.keys(u.puestos).sort().forEach(puestoName => {
-            const p = u.puestos[puestoName];
-            html += `
-            <tr class="row-puesto ${udnId}">
-                <td>${puestoName}</td>
-                <td>${p.n}</td>
-                <td>$${Math.round(p.sueldo/p.n).toLocaleString()}</td>
-                <td style="color:var(--accent2)">$${Math.round(p.comisiones/p.n).toLocaleString()}</td>
-                <td>$${Math.round(p.total).toLocaleString()}</td>
-            </tr>`;
-        });
-    });
-    document.getElementById('pivotTableBody').innerHTML = html;
+  });
+  document.getElementById('pivotBody').innerHTML = html;
 }
 
-function toggleUdn(id, el) {
-    el.classList.toggle('expanded');
-    const rows = document.getElementsByClassName(id);
-    for (let row of rows) {
-        row.style.display = (row.style.display === 'table-row') ? 'none' : 'table-row';
-    }
-}
-
-function filterMainTable() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
-    const res = filtered.filter(e => e.nombre.toLowerCase().includes(q) || e.codigo.includes(q));
-    renderMainTable(res);
+function toggle(id, el) {
+  el.classList.toggle('expanded');
+  document.querySelectorAll('.'+id).forEach(r => r.style.display = (r.style.display === 'table-row' ? 'none' : 'table-row'));
 }
 
 window.onload = loadData;
