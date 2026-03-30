@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sierra People — Pivot Intelligence</title>
+<title>Sierra People — Sistema de Inteligencia de Nómina</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -33,7 +33,7 @@
   .topbar{padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:100}
   .page-title{font-size:18px;font-weight:600}
   .page-subtitle{font-size:12px;color:var(--muted)}
-  .btn-refresh{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:12px;padding:6px 14px;border-radius:8px;cursor:pointer}
+  .btn-refresh{background:var(--accent);border:none;color:white;font-size:12px;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:500}
   
   .content{padding:28px 32px}
 
@@ -49,7 +49,6 @@
   th{padding:12px 18px;font-size:11px;text-transform:uppercase;color:var(--muted);text-align:left;background:var(--surface2);border-bottom:1px solid var(--border)}
   td{padding:12px 18px;font-size:13px;border-bottom:1px solid var(--border)}
   
-  /* Estilos Niveles Dinámicos */
   .row-udn { background: rgba(108,99,255,0.08); cursor: pointer; transition: background 0.2s; }
   .row-udn:hover { background: rgba(108,99,255,0.15); }
   .row-udn td { font-weight: 600; color: var(--text); border-left: 4px solid var(--accent); }
@@ -58,37 +57,27 @@
   .row-puesto td:first-child { padding-left: 45px; color: var(--muted); position: relative; }
   .row-puesto td:first-child::before { content: '└'; position: absolute; left: 25px; color: var(--border); }
   
-  .toggle-icon { display: inline-block; width: 18px; transition: transform 0.2s; color: var(--accent); }
+  .toggle-icon { display: inline-block; width: 14px; transition: transform 0.2s; font-size: 10px; }
   .expanded .toggle-icon { transform: rotate(90deg); }
-  .expanded + .row-puesto { display: table-row; } /* Esto se maneja mejor por JS para múltiples hijos */
-
-  #config-panel{background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:20px;margin-bottom:20px;display:none}
-  .search-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;outline:none;font-size:12px}
 </style>
 </head>
 <body>
 <div class="shell">
   <aside class="sidebar">
-    <div class="logo"><div class="logo-icon">GS</div><div class="logo-text">Sierra People</div></div>
+    <div class="logo"><div class="logo-icon">SP</div><div class="logo-text">Sierra People</div></div>
     <div class="nav-section">
       <div class="nav-item active" onclick="showPage('dashboard', this)">📊 General</div>
-      <div class="nav-item" onclick="showPage('nomina', this)">🧾 Tabla Dinámica</div>
+      <div class="nav-item" onclick="showPage('nomina', this)">🧾 Análisis por UDN</div>
     </div>
-    <div class="nav-section" style="margin-top:auto"><div class="nav-item" onclick="toggleConfig()">⚙️ Configuración</div></div>
   </aside>
 
   <main class="main">
     <div class="topbar">
-      <div><div class="page-title">Sierra People Intelligence</div><div class="page-subtitle" id="status-text">Listo</div></div>
-      <button class="btn-refresh" onclick="loadData()">↻ Actualizar</button>
+      <div><div class="page-title">Sierra People Intelligence</div><div class="page-subtitle" id="status-text">Cargando datos...</div></div>
+      <button class="btn-refresh" onclick="loadData()">↻ Sincronizar</button>
     </div>
 
     <div class="content">
-      <div id="config-panel">
-         <input type="text" id="url-empl" class="search-input" style="width:100%; margin-bottom:10px" placeholder="URL CSV Empleados">
-         <button class="btn-refresh" onclick="loadData()" style="background:var(--accent); width:100%">Conectar y Sincronizar</button>
-      </div>
-
       <div id="page-dashboard" class="content-page">
         <div class="kpi-grid">
             <div class="kpi-card"><div class="kpi-label">Activos</div><div class="kpi-value" id="k-activos">0</div></div>
@@ -100,7 +89,7 @@
         </div>
         
         <div class="table-card">
-            <div style="padding:16px"><input type="text" id="searchInput" class="search-input" placeholder="Buscar empleado..." oninput="filterMainTable()" style="width:300px"></div>
+            <div style="padding:16px"><input type="text" id="searchInput" oninput="filterMainTable()" placeholder="Buscar empleado..." style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;outline:none;font-size:12px;width:300px"></div>
             <table>
                 <thead>
                     <tr><th>Empleado</th><th>UDN</th><th>Puesto</th><th>Antigüedad</th><th>Sueldo Total</th></tr>
@@ -112,18 +101,15 @@
 
       <div id="page-nomina" class="content-page" style="display:none">
         <div class="table-card">
-          <div style="padding:20px">
-            <h3>Análisis Dinámico por Niveles</h3>
-            <p style="font-size:12px; color:var(--muted)">Haz clic en una UDN para ver el desglose por puestos.</p>
-          </div>
+          <div style="padding:20px"><h3>Desglose Dinámico (UDN > Puesto)</h3><p style="font-size:12px; color:var(--muted)">Haz clic en una UDN para ver sus promedios.</p></div>
           <table>
             <thead>
               <tr>
-                <th style="width: 40%">UDN / Puesto (Expandible)</th>
+                <th style="width: 40%">UDN / Puesto</th>
                 <th>Personal</th>
                 <th>Sueldo Prom.</th>
                 <th>Comisión Prom.</th>
-                <th>Total Bruto</th>
+                <th>Costo Total</th>
               </tr>
             </thead>
             <tbody id="pivotTableBody"></tbody>
@@ -136,18 +122,16 @@
 
 <script>
 let allEmployees = [], filtered = [];
+
+// TUS ENLACES INTEGRADOS
 const URL_NOMINA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTsCSsKx9zvxGiXbhNSqbc8NTMUymv_w6osRHGydgRt8WIUjqC-O6QDupUFJtOdxcIIys3bNeUayOSr/pub?gid=1339015466&single=true&output=csv";
+const URL_EMPLEADOS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQfIxhbAy90BMi2mGCl_hrG8wYlUmhtdQK6umd0luAXsVuny-twtYfzLYnW_Bbg93jUjyv7k5l78Epa/pub?gid=292929104&single=true&output=csv";
 
 function showPage(p, el) {
   document.querySelectorAll('.content-page').forEach(pg => pg.style.display = 'none');
   document.querySelectorAll('.nav-item').forEach(ni => ni.classList.remove('active'));
   document.getElementById('page-' + p).style.display = 'block';
   el.classList.add('active');
-}
-
-function toggleConfig() {
-  const cp = document.getElementById('config-panel');
-  cp.style.display = cp.style.display === 'none' ? 'block' : 'none';
 }
 
 function parseCSV(text) {
@@ -162,13 +146,10 @@ function parseCSV(text) {
 }
 
 async function loadData() {
-  const urlE = document.getElementById('url-empl').value || localStorage.getItem('url_empl');
-  if(!urlE) return toggleConfig();
-  localStorage.setItem('url_empl', urlE);
-  document.getElementById('status-text').textContent = "Sincronizando...";
+  document.getElementById('status-text').textContent = "Sincronizando información...";
 
   try {
-    const [resE, resN] = await Promise.all([fetch(urlE), fetch(URL_NOMINA)]);
+    const [resE, resN] = await Promise.all([fetch(URL_EMPLEADOS), fetch(URL_NOMINA)]);
     const rowsE = parseCSV(await resE.text());
     const rowsN = parseCSV(await resN.text());
     const ahora = new Date();
@@ -178,7 +159,7 @@ async function loadData() {
         const cod = r['Código'];
         if(!statsNomina[cod]) statsNomina[cod] = { sueldo: 0, comisiones: 0, total: 0 };
         const monto = parseFloat(r['Total']) || 0;
-        const concepto = r['Concepto'].toLowerCase();
+        const concepto = (r['Concepto'] || "").toLowerCase();
         if(concepto.includes('sueldo')) statsNomina[cod].sueldo += monto;
         else if(concepto.includes('comision')) statsNomina[cod].comisiones += monto;
         statsNomina[cod].total += monto;
@@ -188,15 +169,17 @@ async function loadData() {
       const cod = r['Código'];
       const estatus = r['Estatus empleado'] || 'A';
       const c = statsNomina[cod] || { sueldo: 0, comisiones: 0, total: 0 };
+      
       const pA = (r['Fecha de alta'] || "").split('/');
       const fAlta = pA.length === 3 ? new Date(pA[2], pA[1]-1, pA[0]) : null;
+      
       const pB = (r['Fecha de baja'] || "").split('/');
       const fBaja = pB.length === 3 ? new Date(pB[2], pB[1]-1, pB[0]) : null;
       const bajaReal = (fBaja && fBaja <= ahora) ? fBaja : null;
 
       return {
         codigo: cod,
-        nombre: r['Nombre'] + ' ' + (r['Apellido paterno'] || ''),
+        nombre: (r['Nombre'] || '') + ' ' + (r['Apellido paterno'] || ''),
         area: r['AREA'] || 'Sin Área',
         cdn: r['Departamento'] || 'Sin UDN',
         puesto: r['Puesto'] || 'Sin Puesto',
@@ -210,9 +193,11 @@ async function loadData() {
     }).filter(e => e.nombre.trim() !== "");
 
     renderAll();
-    document.getElementById('status-text').textContent = "Actualizado";
-    document.getElementById('config-panel').style.display = 'none';
-  } catch(e) { console.error(e); }
+    document.getElementById('status-text').textContent = "Conexión en vivo: OK";
+  } catch(e) { 
+    console.error(e);
+    document.getElementById('status-text').textContent = "Error al conectar con Sheets";
+  }
 }
 
 function renderAll() {
@@ -220,24 +205,25 @@ function renderAll() {
     document.getElementById('k-activos').textContent = filtered.length;
     document.getElementById('k-total').textContent = '$' + Math.round(filtered.reduce((s,e)=>s+e.totalBruto,0)).toLocaleString();
     document.getElementById('k-comis').textContent = '$' + Math.round(filtered.reduce((s,e)=>s+e.comisiones,0)).toLocaleString();
-    
+    document.getElementById('k-ant').textContent = (filtered.reduce((s,e)=>s+e.antiguedad,0)/filtered.length || 0).toFixed(1) + ' a';
+    document.getElementById('k-udn').textContent = new Set(filtered.map(e => e.cdn)).size;
+
     renderMainTable(filtered);
     renderPivotTable();
 }
 
 function renderMainTable(data) {
-    document.getElementById('mainTableBody').innerHTML = data.slice(0, 50).map(e => `
+    document.getElementById('mainTableBody').innerHTML = data.slice(0, 100).map(e => `
         <tr>
-            <td><b>${e.nombre}</b><br><small>${e.codigo}</small></td>
+            <td><b>${e.nombre}</b><br><small style="color:var(--muted)">${e.codigo}</small></td>
             <td>${e.cdn}</td>
             <td>${e.puesto}</td>
             <td>${e.antiguedad} a</td>
-            <td>$${Math.round(e.totalBruto).toLocaleString()}</td>
+            <td><b>$${Math.round(e.totalBruto).toLocaleString()}</b></td>
         </tr>
     `).join('');
 }
 
-// LÓGICA DE TABLA DINÁMICA (COLLAPSIBLE)
 function renderPivotTable() {
     const udns = {};
     const activos = allEmployees.filter(e => e.estatus === 'A');
@@ -260,8 +246,6 @@ function renderPivotTable() {
     Object.keys(udns).sort().forEach((udnName, idx) => {
         const u = udns[udnName];
         const udnId = `udn-${idx}`;
-        
-        // Fila Maestra (UDN)
         html += `
         <tr class="row-udn" onclick="toggleUdn('${udnId}', this)">
             <td><span class="toggle-icon">▶</span> 🏢 ${udnName}</td>
@@ -271,7 +255,6 @@ function renderPivotTable() {
             <td>$${Math.round(u.total).toLocaleString()}</td>
         </tr>`;
 
-        // Filas Detalle (Puestos)
         Object.keys(u.puestos).sort().forEach(puestoName => {
             const p = u.puestos[puestoName];
             html += `
@@ -301,7 +284,7 @@ function filterMainTable() {
     renderMainTable(res);
 }
 
-window.onload = () => { if(localStorage.getItem('url_empl')) loadData(); };
+window.onload = loadData;
 </script>
 </body>
 </html>
