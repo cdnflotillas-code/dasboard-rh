@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sierra People — Dashboard Premium</title>
+<title>Sierra People — Pivot Intelligence</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -28,31 +28,39 @@
   .nav-item:hover{background:var(--surface2);color:var(--text)}
   .nav-item.active{background:rgba(108,99,255,.15);color:var(--accent)}
 
-  /* Topbar */
+  /* Main */
   .main{flex:1;overflow:auto}
   .topbar{padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:100}
   .page-title{font-size:18px;font-weight:600}
   .page-subtitle{font-size:12px;color:var(--muted)}
   .btn-refresh{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:12px;padding:6px 14px;border-radius:8px;cursor:pointer}
+  
   .content{padding:28px 32px}
 
   /* KPIs */
   .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
   .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;border-top:2px solid var(--accent)}
   .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
-  .kpi-value{font-size:24px;font-weight:600}
+  .kpi-value{font-size:20px;font-weight:600}
 
-  /* Tables & Charts */
-  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
-  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
-  .chart-wrap{position:relative;height:220px}
+  /* Table Dinámica */
   .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:28px}
   table{width:100%;border-collapse:collapse}
-  th{padding:12px 18px;font-size:11px;text-transform:uppercase;color:var(--muted);text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer; transition: 0.2s}
-  th:hover{color:var(--text); background:var(--surface)}
+  th{padding:12px 18px;font-size:11px;text-transform:uppercase;color:var(--muted);text-align:left;background:var(--surface2);border-bottom:1px solid var(--border)}
   td{padding:12px 18px;font-size:13px;border-bottom:1px solid var(--border)}
-  .clickable-cell{cursor:pointer; font-weight: 500;}
-  .clickable-cell:hover{color:var(--accent2); text-decoration: underline;}
+  
+  /* Estilos Niveles Dinámicos */
+  .row-udn { background: rgba(108,99,255,0.08); cursor: pointer; transition: background 0.2s; }
+  .row-udn:hover { background: rgba(108,99,255,0.15); }
+  .row-udn td { font-weight: 600; color: var(--text); border-left: 4px solid var(--accent); }
+  
+  .row-puesto { display: none; background: rgba(255,255,255,0.01); }
+  .row-puesto td:first-child { padding-left: 45px; color: var(--muted); position: relative; }
+  .row-puesto td:first-child::before { content: '└'; position: absolute; left: 25px; color: var(--border); }
+  
+  .toggle-icon { display: inline-block; width: 18px; transition: transform 0.2s; color: var(--accent); }
+  .expanded .toggle-icon { transform: rotate(90deg); }
+  .expanded + .row-puesto { display: table-row; } /* Esto se maneja mejor por JS para múltiples hijos */
 
   #config-panel{background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:20px;margin-bottom:20px;display:none}
   .search-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;outline:none;font-size:12px}
@@ -61,87 +69,64 @@
 <body>
 <div class="shell">
   <aside class="sidebar">
-    <div class="logo"><div class="logo-icon">👥</div><div class="logo-text">Sierra People</div></div>
+    <div class="logo"><div class="logo-icon">GS</div><div class="logo-text">Sierra People</div></div>
     <div class="nav-section">
-      <div class="nav-item active" onclick="showPage('dashboard', this)">📊 Dashboard</div>
-      <div class="nav-item" onclick="showPage('nomina', this)">💰 Nómina Agrupada</div>
+      <div class="nav-item active" onclick="showPage('dashboard', this)">📊 General</div>
+      <div class="nav-item" onclick="showPage('nomina', this)">🧾 Tabla Dinámica</div>
     </div>
-    <div class="nav-section" style="margin-top:auto"><div class="nav-item" onclick="toggleConfig()">⚙️ Configurar</div></div>
+    <div class="nav-section" style="margin-top:auto"><div class="nav-item" onclick="toggleConfig()">⚙️ Configuración</div></div>
   </aside>
 
   <main class="main">
     <div class="topbar">
-      <div><div class="page-title" id="main-title">Dashboard General</div><div class="page-subtitle" id="topbar-sub">Sincronizando datos...</div></div>
-      <button class="btn-refresh" onclick="loadSheet()">↻ Actualizar</button>
+      <div><div class="page-title">Sierra People Intelligence</div><div class="page-subtitle" id="status-text">Listo</div></div>
+      <button class="btn-refresh" onclick="loadData()">↻ Actualizar</button>
     </div>
 
     <div class="content">
       <div id="config-panel">
-         <input type="text" id="sheet-url" class="search-input" style="width:70%" placeholder="URL CSV de Google Sheets">
-         <button class="btn-refresh" onclick="loadSheet()" style="background:var(--accent)">Conectar</button>
+         <input type="text" id="url-empl" class="search-input" style="width:100%; margin-bottom:10px" placeholder="URL CSV Empleados">
+         <button class="btn-refresh" onclick="loadData()" style="background:var(--accent); width:100%">Conectar y Sincronizar</button>
       </div>
 
       <div id="page-dashboard" class="content-page">
         <div class="kpi-grid">
-          <div class="kpi-card"><div class="kpi-label">Activos</div><div class="kpi-value" id="k-activos">0</div></div>
-          <div class="kpi-card" style="border-color:var(--accent2)"><div class="kpi-label">Centros CDN</div><div class="kpi-value" id="k-cdns">0</div></div>
-          <div class="kpi-card" style="border-color:var(--accent4)"><div class="kpi-label">Nómina Est.</div><div class="kpi-value" id="k-nomina">$0</div></div>
-          <div class="kpi-card" style="border-color:#4dabf7"><div class="kpi-label">Sueldo Prom.</div><div class="kpi-value" id="k-sal">$0</div></div>
-          <div class="kpi-card" style="border-color:#ff9f43"><div class="kpi-label">Antigüedad Prom.</div><div class="kpi-value" id="k-ant">0 a</div></div>
-          <div class="kpi-card" style="border-color:var(--accent3)"><div class="kpi-label">Histórico</div><div class="kpi-value" id="k-hist">0</div></div>
+            <div class="kpi-card"><div class="kpi-label">Activos</div><div class="kpi-value" id="k-activos">0</div></div>
+            <div class="kpi-card" style="border-color:var(--accent4)"><div class="kpi-label">Nómina Bruta</div><div class="kpi-value" id="k-total">$0</div></div>
+            <div class="kpi-card" style="border-color:var(--accent2)"><div class="kpi-label">Comisiones</div><div class="kpi-value" id="k-comis">$0</div></div>
+            <div class="kpi-card" style="border-color:#4dabf7"><div class="kpi-label">Antigüedad Prom.</div><div class="kpi-value" id="k-ant">0 a</div></div>
+            <div class="kpi-card" style="border-color:var(--accent3)"><div class="kpi-label">Bajas (Mes)</div><div class="kpi-value" id="k-bajas">0</div></div>
+            <div class="kpi-card"><div class="kpi-label">UDNs</div><div class="kpi-value" id="k-udn">0</div></div>
         </div>
-
-        <div class="charts-row">
-          <div class="chart-card">
-            <div class="kpi-label">Bajas (Histórico Mensual)</div>
-            <div class="chart-wrap"><canvas id="bajasChart"></canvas></div>
-          </div>
-          <div class="chart-card">
-            <div class="kpi-label">Distribución Áreas</div>
-            <div class="chart-wrap"><canvas id="areaChart"></canvas></div>
-          </div>
-        </div>
-
+        
         <div class="table-card">
-          <div style="padding:16px; display:flex; gap:10px">
-            <input type="text" id="searchInput" class="search-input" placeholder="Buscar empleado..." oninput="filterTable()" style="width:300px">
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th onclick="sortMain('nombre')">Empleado ↕</th>
-                <th onclick="sortMain('area')">Área ↕</th>
-                <th onclick="sortMain('puesto')">Puesto ↕</th>
-                <th onclick="sortMain('cdn')">CDN ↕</th>
-                <th onclick="sortMain('antiguedad')">Antigüedad ↕</th>
-                <th onclick="sortMain('sal_mensual')">Sueldo ↕</th>
-              </tr>
-            </thead>
-            <tbody id="empTable"></tbody>
-          </table>
+            <div style="padding:16px"><input type="text" id="searchInput" class="search-input" placeholder="Buscar empleado..." oninput="filterMainTable()" style="width:300px"></div>
+            <table>
+                <thead>
+                    <tr><th>Empleado</th><th>UDN</th><th>Puesto</th><th>Antigüedad</th><th>Sueldo Total</th></tr>
+                </thead>
+                <tbody id="mainTableBody"></tbody>
+            </table>
         </div>
       </div>
 
       <div id="page-nomina" class="content-page" style="display:none">
         <div class="table-card">
-          <div style="padding:20px; display:flex; justify-content:space-between; align-items:center">
-            <h3>Estructura Salarial Agrupada</h3>
-            <select id="groupSelector" class="search-input" onchange="renderNomina()">
-              <option value="puesto">Por Puesto</option>
-              <option value="area">Por Área</option>
-              <option value="cdn">Por CDN</option>
-            </select>
+          <div style="padding:20px">
+            <h3>Análisis Dinámico por Niveles</h3>
+            <p style="font-size:12px; color:var(--muted)">Haz clic en una UDN para ver el desglose por puestos.</p>
           </div>
           <table>
             <thead>
               <tr>
-                <th onclick="sortNomina('categoria')">Categoría ↕</th>
-                <th onclick="sortNomina('n')">Personal ↕</th>
-                <th onclick="sortNomina('promedio')">Sueldo Promedio ↕</th>
-                <th onclick="sortNomina('sum')">Total Mensual ↕</th>
+                <th style="width: 40%">UDN / Puesto (Expandible)</th>
+                <th>Personal</th>
+                <th>Sueldo Prom.</th>
+                <th>Comisión Prom.</th>
+                <th>Total Bruto</th>
               </tr>
             </thead>
-            <tbody id="nominaBody"></tbody>
+            <tbody id="pivotTableBody"></tbody>
           </table>
         </div>
       </div>
@@ -150,75 +135,19 @@
 </div>
 
 <script>
-let allEmployees = [], filtered = [], nominaData = [];
-let sortState = { key: '', dir: 'asc' };
-let charts = {};
+let allEmployees = [], filtered = [];
+const URL_NOMINA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTsCSsKx9zvxGiXbhNSqbc8NTMUymv_w6osRHGydgRt8WIUjqC-O6QDupUFJtOdxcIIys3bNeUayOSr/pub?gid=1339015466&single=true&output=csv";
 
 function showPage(p, el) {
   document.querySelectorAll('.content-page').forEach(pg => pg.style.display = 'none');
   document.querySelectorAll('.nav-item').forEach(ni => ni.classList.remove('active'));
   document.getElementById('page-' + p).style.display = 'block';
   el.classList.add('active');
-  if(p === 'nomina') renderNomina();
 }
 
 function toggleConfig() {
   const cp = document.getElementById('config-panel');
   cp.style.display = cp.style.display === 'none' ? 'block' : 'none';
-}
-
-function parseDate(dateStr) {
-    if (!dateStr) return null;
-    const parts = dateStr.split('/');
-    if (parts.length === 3) {
-        // Asume DD/MM/YYYY
-        return new Date(parts[2], parts[1] - 1, parts[0]);
-    }
-    const d = new Date(dateStr);
-    return isNaN(d) ? null : d;
-}
-
-async function loadSheet() {
-  const url = document.getElementById('sheet-url').value || localStorage.getItem('rh_url');
-  if(!url) return toggleConfig();
-  localStorage.setItem('rh_url', url);
-  
-  try {
-    const res = await fetch(url);
-    const text = await res.text();
-    const rows = parseCSV(text);
-    const ahora = new Date();
-    
-    allEmployees = rows.map(r => {
-      const estatus = r['Estatus empleado'] || 'A';
-      const salDiario = parseFloat(r['Salario diario'] || 0) || 0;
-      const fAlta = parseDate(r['Fecha de alta']);
-      const fBajaRaw = parseDate(r['Fecha de baja']);
-      
-      let ant = 0;
-      if(fAlta) {
-          ant = ((ahora - fAlta) / (1000*60*60*24*365.25)).toFixed(1);
-      }
-
-      // VALIDACIÓN CRÍTICA: Si la fecha de baja es en el futuro, se ignora
-      let finalBaja = (fBajaRaw && fBajaRaw <= ahora) ? fBajaRaw : null;
-
-      return {
-        codigo: r['Código'] || '',
-        nombre: r['Nombre'] + ' ' + (r['Apellido paterno'] || ''),
-        area: r['AREA'] || 'N/A',
-        cdn: r['Departamento'] || 'N/A',
-        puesto: r['Puesto'] || 'N/A',
-        sal_mensual: salDiario * 30,
-        antiguedad: Math.max(0, parseFloat(ant) || 0),
-        estatus: estatus,
-        fechaBaja: (estatus === 'A') ? null : finalBaja
-      };
-    }).filter(e => e.nombre.trim() !== "");
-
-    updateDashboard();
-    document.getElementById('config-panel').style.display = 'none';
-  } catch(e) { console.error(e); }
 }
 
 function parseCSV(text) {
@@ -232,134 +161,147 @@ function parseCSV(text) {
   });
 }
 
-function updateDashboard() {
-  filtered = allEmployees.filter(e => e.estatus === 'A');
-  const nominaTotal = filtered.reduce((s, e) => s + e.sal_mensual, 0);
-  
-  document.getElementById('k-activos').textContent = filtered.length;
-  document.getElementById('k-cdns').textContent = new Set(filtered.map(e => e.cdn)).size;
-  document.getElementById('k-nomina').textContent = '$' + Math.round(nominaTotal).toLocaleString();
-  document.getElementById('k-sal').textContent = '$' + Math.round((nominaTotal/30)/filtered.length || 0).toLocaleString();
-  document.getElementById('k-ant').textContent = (filtered.reduce((s,e)=>s+e.antiguedad,0)/filtered.length || 0).toFixed(1) + ' a';
-  document.getElementById('k-hist').textContent = allEmployees.length;
-  document.getElementById('topbar-sub').textContent = `${filtered.length} empleados activos`;
+async function loadData() {
+  const urlE = document.getElementById('url-empl').value || localStorage.getItem('url_empl');
+  if(!urlE) return toggleConfig();
+  localStorage.setItem('url_empl', urlE);
+  document.getElementById('status-text').textContent = "Sincronizando...";
 
-  renderCharts();
-  renderTable(filtered);
+  try {
+    const [resE, resN] = await Promise.all([fetch(urlE), fetch(URL_NOMINA)]);
+    const rowsE = parseCSV(await resE.text());
+    const rowsN = parseCSV(await resN.text());
+    const ahora = new Date();
+
+    const statsNomina = {};
+    rowsN.forEach(r => {
+        const cod = r['Código'];
+        if(!statsNomina[cod]) statsNomina[cod] = { sueldo: 0, comisiones: 0, total: 0 };
+        const monto = parseFloat(r['Total']) || 0;
+        const concepto = r['Concepto'].toLowerCase();
+        if(concepto.includes('sueldo')) statsNomina[cod].sueldo += monto;
+        else if(concepto.includes('comision')) statsNomina[cod].comisiones += monto;
+        statsNomina[cod].total += monto;
+    });
+
+    allEmployees = rowsE.map(r => {
+      const cod = r['Código'];
+      const estatus = r['Estatus empleado'] || 'A';
+      const c = statsNomina[cod] || { sueldo: 0, comisiones: 0, total: 0 };
+      const pA = (r['Fecha de alta'] || "").split('/');
+      const fAlta = pA.length === 3 ? new Date(pA[2], pA[1]-1, pA[0]) : null;
+      const pB = (r['Fecha de baja'] || "").split('/');
+      const fBaja = pB.length === 3 ? new Date(pB[2], pB[1]-1, pB[0]) : null;
+      const bajaReal = (fBaja && fBaja <= ahora) ? fBaja : null;
+
+      return {
+        codigo: cod,
+        nombre: r['Nombre'] + ' ' + (r['Apellido paterno'] || ''),
+        area: r['AREA'] || 'Sin Área',
+        cdn: r['Departamento'] || 'Sin UDN',
+        puesto: r['Puesto'] || 'Sin Puesto',
+        antiguedad: fAlta ? parseFloat(((ahora - fAlta) / (1000*60*60*24*365.25)).toFixed(1)) : 0,
+        estatus: estatus,
+        fechaBaja: (estatus === 'A') ? null : bajaReal,
+        sueldo: c.sueldo,
+        comisiones: c.comisiones,
+        totalBruto: c.total
+      };
+    }).filter(e => e.nombre.trim() !== "");
+
+    renderAll();
+    document.getElementById('status-text').textContent = "Actualizado";
+    document.getElementById('config-panel').style.display = 'none';
+  } catch(e) { console.error(e); }
 }
 
-function quickFilter(campo, valor) {
-  filtered = allEmployees.filter(e => e.estatus === 'A' && e[campo] === valor);
-  document.getElementById('topbar-sub').innerHTML = `Filtrado por ${valor} <span onclick="updateDashboard()" style="color:var(--accent3); cursor:pointer; text-decoration:underline; margin-left:10px">[Limpiar]</span>`;
-  renderTable(filtered);
+function renderAll() {
+    filtered = allEmployees.filter(e => e.estatus === 'A');
+    document.getElementById('k-activos').textContent = filtered.length;
+    document.getElementById('k-total').textContent = '$' + Math.round(filtered.reduce((s,e)=>s+e.totalBruto,0)).toLocaleString();
+    document.getElementById('k-comis').textContent = '$' + Math.round(filtered.reduce((s,e)=>s+e.comisiones,0)).toLocaleString();
+    
+    renderMainTable(filtered);
+    renderPivotTable();
 }
 
-function sortMain(key) {
-  sortState.dir = (sortState.key === key && sortState.dir === 'asc') ? 'desc' : 'asc';
-  sortState.key = key;
-  filtered.sort((a, b) => {
-    let v1 = a[key], v2 = b[key];
-    if (v1 < v2) return sortState.dir === 'asc' ? -1 : 1;
-    if (v1 > v2) return sortState.dir === 'asc' ? 1 : -1;
-    return 0;
-  });
-  renderTable(filtered);
+function renderMainTable(data) {
+    document.getElementById('mainTableBody').innerHTML = data.slice(0, 50).map(e => `
+        <tr>
+            <td><b>${e.nombre}</b><br><small>${e.codigo}</small></td>
+            <td>${e.cdn}</td>
+            <td>${e.puesto}</td>
+            <td>${e.antiguedad} a</td>
+            <td>$${Math.round(e.totalBruto).toLocaleString()}</td>
+        </tr>
+    `).join('');
 }
 
-function filterTable() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  const res = filtered.filter(e => e.nombre.toLowerCase().includes(q) || e.codigo.includes(q));
-  renderTable(res);
+// LÓGICA DE TABLA DINÁMICA (COLLAPSIBLE)
+function renderPivotTable() {
+    const udns = {};
+    const activos = allEmployees.filter(e => e.estatus === 'A');
+
+    activos.forEach(e => {
+        if(!udns[e.cdn]) udns[e.cdn] = { n: 0, sueldo: 0, comisiones: 0, total: 0, puestos: {} };
+        udns[e.cdn].n++;
+        udns[e.cdn].sueldo += e.sueldo;
+        udns[e.cdn].comisiones += e.comisiones;
+        udns[e.cdn].total += e.totalBruto;
+
+        if(!udns[e.cdn].puestos[e.puesto]) udns[e.cdn].puestos[e.puesto] = { n: 0, sueldo: 0, comisiones: 0, total: 0 };
+        udns[e.cdn].puestos[e.puesto].n++;
+        udns[e.cdn].puestos[e.puesto].sueldo += e.sueldo;
+        udns[e.cdn].puestos[e.puesto].comisiones += e.comisiones;
+        udns[e.cdn].puestos[e.puesto].total += e.totalBruto;
+    });
+
+    let html = '';
+    Object.keys(udns).sort().forEach((udnName, idx) => {
+        const u = udns[udnName];
+        const udnId = `udn-${idx}`;
+        
+        // Fila Maestra (UDN)
+        html += `
+        <tr class="row-udn" onclick="toggleUdn('${udnId}', this)">
+            <td><span class="toggle-icon">▶</span> 🏢 ${udnName}</td>
+            <td>${u.n}</td>
+            <td>$${Math.round(u.sueldo/u.n).toLocaleString()}</td>
+            <td>$${Math.round(u.comisiones/u.n).toLocaleString()}</td>
+            <td>$${Math.round(u.total).toLocaleString()}</td>
+        </tr>`;
+
+        // Filas Detalle (Puestos)
+        Object.keys(u.puestos).sort().forEach(puestoName => {
+            const p = u.puestos[puestoName];
+            html += `
+            <tr class="row-puesto ${udnId}">
+                <td>${puestoName}</td>
+                <td>${p.n}</td>
+                <td>$${Math.round(p.sueldo/p.n).toLocaleString()}</td>
+                <td style="color:var(--accent2)">$${Math.round(p.comisiones/p.n).toLocaleString()}</td>
+                <td>$${Math.round(p.total).toLocaleString()}</td>
+            </tr>`;
+        });
+    });
+    document.getElementById('pivotTableBody').innerHTML = html;
 }
 
-function renderTable(data) {
-  const tb = document.getElementById('empTable');
-  tb.innerHTML = data.slice(0, 100).map(e => `
-    <tr>
-      <td><b>${e.nombre}</b><br><small style="color:var(--muted)">${e.codigo}</small></td>
-      <td class="clickable-cell" onclick="quickFilter('area','${e.area}')">${e.area}</td>
-      <td class="clickable-cell" onclick="quickFilter('puesto','${e.puesto}')">${e.puesto}</td>
-      <td class="clickable-cell" onclick="quickFilter('cdn','${e.cdn}')">${e.cdn}</td>
-      <td style="color:var(--accent2)">${e.antiguedad} años</td>
-      <td>$${Math.round(e.sal_mensual).toLocaleString()}</td>
-    </tr>
-  `).join('');
+function toggleUdn(id, el) {
+    el.classList.toggle('expanded');
+    const rows = document.getElementsByClassName(id);
+    for (let row of rows) {
+        row.style.display = (row.style.display === 'table-row') ? 'none' : 'table-row';
+    }
 }
 
-function renderNomina() {
-  const key = document.getElementById('groupSelector').value;
-  const activos = allEmployees.filter(e => e.estatus === 'A');
-  const groups = {};
-  activos.forEach(e => {
-    if(!groups[e[key]]) groups[e[key]] = { categoria: e[key], n: 0, sum: 0 };
-    groups[e[key]].n++;
-    groups[e[key]].sum += e.sal_mensual;
-  });
-  nominaData = Object.values(groups).map(g => ({...g, promedio: g.sum / g.n }));
-  displayNomina(nominaData);
+function filterMainTable() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const res = filtered.filter(e => e.nombre.toLowerCase().includes(q) || e.codigo.includes(q));
+    renderMainTable(res);
 }
 
-function sortNomina(key) {
-  sortState.dir = (sortState.key === key && sortState.dir === 'asc') ? 'desc' : 'asc';
-  sortState.key = key;
-  nominaData.sort((a, b) => {
-    if (a[key] < b[key]) return sortState.dir === 'asc' ? -1 : 1;
-    if (a[key] > b[key]) return sortState.dir === 'asc' ? 1 : -1;
-    return 0;
-  });
-  displayNomina(nominaData);
-}
-
-function displayNomina(data) {
-  document.getElementById('nominaBody').innerHTML = data.map(g => `
-    <tr>
-      <td><b>${g.categoria}</b></td>
-      <td>${g.n}</td>
-      <td>$${Math.round(g.promedio).toLocaleString()}</td>
-      <td style="color:var(--accent2); font-weight:600">$${Math.round(g.sum).toLocaleString()}</td>
-    </tr>
-  `).join('');
-}
-
-function renderCharts() {
-  if(charts.area) charts.area.destroy();
-  if(charts.bajas) charts.bajas.destroy();
-
-  const areaCounts = {};
-  filtered.forEach(e => areaCounts[e.area] = (areaCounts[e.area] || 0) + 1);
-
-  charts.area = new Chart(document.getElementById('areaChart'), {
-    type: 'doughnut',
-    data: { 
-      labels: Object.keys(areaCounts), 
-      datasets: [{ data: Object.values(areaCounts), backgroundColor: ['#6c63ff','#00d4aa','#ffd166','#ff6b6b','#4dabf7'] }] 
-    },
-    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
-  });
-
-  const mActual = new Array(12).fill(0), mPasado = new Array(12).fill(0);
-  const esteAño = new Date().getFullYear();
-  
-  allEmployees.filter(e => e.fechaBaja).forEach(e => {
-    const fBaja = e.fechaBaja;
-    if(fBaja.getFullYear() === esteAño) mActual[fBaja.getMonth()]++;
-    if(fBaja.getFullYear() === esteAño - 1) mPasado[fBaja.getMonth()]++;
-  });
-
-  charts.bajas = new Chart(document.getElementById('bajasChart'), {
-    type: 'bar',
-    data: {
-      labels: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
-      datasets: [
-        { label: 'Bajas ' + esteAño, data: mActual, backgroundColor: '#6c63ff' },
-        { label: 'Bajas ' + (esteAño-1), data: mPasado, backgroundColor: 'rgba(255,255,255,0.05)' }
-      ]
-    },
-    options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-  });
-}
-
-window.onload = () => { if(localStorage.getItem('rh_url')) loadSheet(); };
+window.onload = () => { if(localStorage.getItem('url_empl')) loadData(); };
 </script>
 </body>
 </html>
