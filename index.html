@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sierra People — Intelligence & Sorting</title>
+<title>Sierra People — Datos Separados</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -15,81 +15,81 @@
   }
   body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;overflow-x:hidden}
   .shell{display:flex;min-height:100vh}
-  .sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;position:sticky;top:0;height:100vh}
-  .logo{padding:0 20px 28px; font-weight:600; font-size:16px; border-bottom:1px solid var(--border); margin-bottom:16px}
-  .nav-item{padding:10px 20px; color:var(--muted); cursor:pointer; font-size:13px; transition:0.2s}
-  .nav-item:hover, .nav-item.active{color:var(--accent); background:rgba(108,99,255,0.1)}
+  .sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;position:sticky;top:0;height:100vh}
+  .logo{padding:0 20px 28px; font-weight:600; font-size:16px; border-bottom:1px solid var(--border); margin-bottom:16px; color: var(--accent)}
+  .nav-item{padding:12px 20px; color:var(--muted); cursor:pointer; font-size:13px; transition:0.2s; display: flex; align-items: center; gap: 10px;}
+  .nav-item:hover, .nav-item.active{color:var(--text); background:rgba(108,99,255,0.15)}
+  .nav-item.active{border-right: 3px solid var(--accent); color: var(--accent)}
   .main{flex:1; padding:32px; overflow-y: auto;}
   .topbar{margin-bottom:24px; display:flex; justify-content:space-between; align-items:center}
-  .btn-refresh{background:var(--accent); color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:500}
-  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-bottom:30px}
-  .kpi-card{background:var(--surface); padding:20px; border-radius:var(--radius); border:1px solid var(--border)}
-  .table-card{background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); overflow:hidden; margin-bottom:20px}
+  .status-pill{background: var(--surface2); padding: 4px 12px; border-radius: 20px; font-size: 11px; border: 1px solid var(--border)}
+  
+  .table-card{background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); overflow:hidden; margin-bottom:28px}
   table{width:100%; border-collapse:collapse}
-  th{background:var(--surface2); padding:14px 18px; text-align:left; font-size:11px; text-transform:uppercase; color:var(--muted); cursor:pointer; transition: 0.2s; user-select: none;}
-  th:hover{color:var(--text); background: var(--surface)}
-  td{padding:14px 18px; border-bottom:1px solid var(--border); vertical-align: middle}
-  .row-udn{background:rgba(108,99,255,0.05); cursor:pointer; font-weight:600}
-  .row-puesto{display:none} 
-  .row-puesto td:first-child{padding-left:45px; color:var(--muted); position: relative}
-  .row-puesto td:first-child::before{content:'└'; position:absolute; left:25px; color:var(--border)}
-  .filter-bar{padding:15px; display:flex; gap:12px; background:var(--surface2); border-bottom:1px solid var(--border)}
-  select, input{background:var(--bg); border:1px solid var(--border); color:white; padding:10px; border-radius:8px; font-size:12px; outline:none}
+  th{background:var(--surface2); padding:14px 18px; text-align:left; font-size:11px; text-transform:uppercase; color:var(--muted); cursor:pointer}
+  td{padding:14px 18px; border-bottom:1px solid var(--border)}
+  
+  .row-master{background:rgba(108,99,255,0.03); cursor:pointer; font-weight:600}
+  .row-detail{display:none; background:rgba(255,255,255,0.01)}
+  .row-detail td:first-child{padding-left:45px; color:var(--muted); position: relative}
+  .row-detail td:first-child::before{content:'└'; position:absolute; left:25px; color:var(--border)}
+  
+  .filter-bar{padding:15px; display:flex; gap:12px; background:var(--surface2); border-bottom:1px solid var(--border); align-items: center}
+  input, select{background:var(--bg); border:1px solid var(--border); color:white; padding:8px 12px; border-radius:8px; font-size:12px; outline:none}
   .toggle-icon{display:inline-block; width:15px; transition:0.2s; font-size: 10px}
   .expanded .toggle-icon{transform:rotate(90deg)}
-  .sort-icon{margin-left: 5px; opacity: 0.3; font-size: 10px}
+  
+  .badge-count{background: var(--accent); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-left: auto}
 </style>
 </head>
 <body>
 <div class="shell">
   <aside class="sidebar">
-    <div class="logo">Sierra People</div>
-    <div class="nav-item active" onclick="showPage('dashboard', this)">📊 Tabla General</div>
-    <div class="nav-item" onclick="showPage('nomina', this)">🧾 Análisis Dinámico</div>
+    <div class="logo">Sierra People Intelligence</div>
+    <div class="nav-item active" onclick="showPage('personal', this)">👥 Estructura de Personal</div>
+    <div class="nav-item" onclick="showPage('pagos', this)">💰 Captura de Pagos Real</div>
   </aside>
+  
   <main class="main">
     <div class="topbar">
-      <div><h2 id="page-title">Capital Humano</h2><p id="status" style="font-size:12px; color:var(--muted)">Sincronizando...</p></div>
-      <button class="btn-refresh" onclick="loadData()">↻ Recargar Datos</button>
+      <h2 id="view-title">Estructura de Personal</h2>
+      <div class="status-pill" id="data-status">Esperando datos...</div>
     </div>
 
-    <div id="page-dashboard" class="content-page">
-      <div class="kpi-grid" id="kpi-container"></div>
+    <div id="page-personal" class="content-page">
       <div class="table-card">
         <div class="filter-bar">
-          <input type="text" id="searchMain" placeholder="Buscar por nombre o código..." oninput="renderMainTable()" style="width: 300px">
-        </div>
-        <table id="mainTable">
-          <thead>
-            <tr>
-              <th onclick="sortMain('nombre')">Empleado <span class="sort-icon">↕</span></th>
-              <th onclick="sortMain('udn')">UDN <span class="sort-icon">↕</span></th>
-              <th onclick="sortMain('puesto')">Puesto <span class="sort-icon">↕</span></th>
-              <th onclick="sortMain('total')">Sueldo Bruto <span class="sort-icon">↕</span></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="page-nomina" class="content-page" style="display:none">
-      <div class="table-card">
-        <div class="filter-bar">
-          <label style="font-size:12px; align-self:center">Filtrar por Puesto Específico:</label>
-          <select id="puestoFilter" onchange="renderPivotTable()"><option value="">Todos los puestos</option></select>
+          <input type="text" placeholder="Buscar en catálogo..." oninput="renderPersonal(this.value)" style="width: 300px">
         </div>
         <table>
           <thead>
             <tr>
-              <th>UDN / Puesto (Clic para expandir)</th>
-              <th>Personal</th>
-              <th>Sueldo Prom.</th>
-              <th>Comisión Prom.</th>
-              <th>Costo Bruto</th>
+              <th>UDN / Puesto</th>
+              <th>Colaboradores Activos</th>
+              <th>Promedio Antigüedad</th>
             </tr>
           </thead>
-          <tbody id="pivotBody"></tbody>
+          <tbody id="personalBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="page-pagos" class="content-page" style="display:none">
+      <div class="table-card">
+        <div class="filter-bar">
+          <label style="font-size:12px">Filtrar por concepto capturado:</label>
+          <select id="conceptoFilter" onchange="renderPagos()"><option value="">Todos los conceptos</option></select>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>UDN / Puesto (Datos de Captura)</th>
+              <th>Registros</th>
+              <th>Monto Promedio</th>
+              <th>Total Acumulado</th>
+            </tr>
+          </thead>
+          <tbody id="pagosBody"></tbody>
         </table>
       </div>
     </div>
@@ -97,8 +97,7 @@
 </div>
 
 <script>
-let allEmployees = [];
-let sortState = { key: 'nombre', dir: 'asc' };
+let dataEmpl = [], dataNomina = [];
 
 const URL_NOMINA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTsCSsKx9zvxGiXbhNSqbc8NTMUymv_w6osRHGydgRt8WIUjqC-O6QDupUFJtOdxcIIys3bNeUayOSr/pub?gid=1339015466&single=true&output=csv";
 const URL_EMPLEADOS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQfIxhbAy90BMi2mGCl_hrG8wYlUmhtdQK6umd0luAXsVuny-twtYfzLYnW_Bbg93jUjyv7k5l78Epa/pub?gid=292929104&single=true&output=csv";
@@ -107,6 +106,7 @@ function showPage(p, el) {
   document.querySelectorAll('.content-page').forEach(pg => pg.style.display = 'none');
   document.querySelectorAll('.nav-item').forEach(ni => ni.classList.remove('active'));
   document.getElementById('page-' + p).style.display = 'block';
+  document.getElementById('view-title').textContent = el.textContent;
   el.classList.add('active');
 }
 
@@ -122,127 +122,105 @@ function parseCSV(text) {
 }
 
 async function loadData() {
-  document.getElementById('status').textContent = "Conectando con Google Sheets...";
   try {
     const [resE, resN] = await Promise.all([fetch(URL_EMPLEADOS), fetch(URL_NOMINA)]);
-    const rowsE = parseCSV(await resE.text());
-    const rowsN = parseCSV(await resN.text());
+    dataEmpl = parseCSV(await resE.text());
+    dataNomina = parseCSV(await resN.text());
 
-    const statsNomina = {};
-    rowsN.forEach(r => {
-      const cod = r['Código'] || r['codigo'];
-      if(!cod) return;
-      if(!statsNomina[cod]) statsNomina[cod] = { sueldo: 0, comisiones: 0, total: 0 };
-      
-      const monto = parseFloat((r['Total'] || "0").replace(/[^0-9.-]+/g,"")) || 0;
-      const concepto = (r['Concepto'] || "").toLowerCase();
-      
-      if(concepto.includes('sueldo')) statsNomina[cod].sueldo += monto;
-      else if(concepto.includes('comision')) statsNomina[cod].comisiones += monto;
-      statsNomina[cod].total += monto;
-    });
+    // Poblar filtro de conceptos de la tabla de pagos
+    const conceptos = [...new Set(dataNomina.map(n => n['Concepto']))].filter(Boolean).sort();
+    document.getElementById('conceptoFilter').innerHTML = '<option value="">Todos los conceptos</option>' + conceptos.map(c => `<option value="${c}">${c}</option>`).join('');
 
-    allEmployees = rowsE.map(r => {
-      const cod = r['Código'] || r['codigo'];
-      const c = statsNomina[cod] || { sueldo: 0, comisiones: 0, total: 0 };
-      return {
-        codigo: cod,
-        nombre: (r['Nombre'] || '') + ' ' + (r['Apellido paterno'] || ''),
-        udn: r['Departamento'] || 'Sin UDN',
-        puesto: r['Puesto'] || 'Sin Puesto',
-        sueldo: c.sueldo,
-        comisiones: c.comisiones,
-        total: c.total,
-        activo: (r['Estatus empleado'] || 'A') === 'A'
-      };
-    }).filter(e => e.nombre.trim() !== "" && e.activo);
-
-    const puestos = [...new Set(allEmployees.map(e => e.puesto))].sort();
-    document.getElementById('puestoFilter').innerHTML = '<option value="">Todos los puestos</option>' + puestos.map(p => `<option value="${p}">${p}</option>`).join('');
-
-    renderAll();
-    document.getElementById('status').textContent = "Sincronizado con éxito";
+    renderPersonal();
+    renderPagos();
+    document.getElementById('data-status').textContent = "Bases cargadas de forma independiente";
   } catch(e) {
-    document.getElementById('status').textContent = "Error de enlace";
+    document.getElementById('data-status').textContent = "Error de conexión";
   }
 }
 
-function sortMain(key) {
-  if (sortState.key === key) {
-    sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
-  } else {
-    sortState.key = key;
-    sortState.dir = 'asc';
-  }
-  renderMainTable();
-}
+// RENDER TABLA 1: ESTRUCTURA (Basado solo en archivo Empleados)
+function renderPersonal(search = "") {
+  const query = search.toLowerCase();
+  const tree = {};
 
-function renderMainTable() {
-  const q = document.getElementById('searchMain').value.toLowerCase();
-  let filtered = allEmployees.filter(e => e.nombre.toLowerCase().includes(q) || e.codigo.includes(q));
+  dataEmpl.forEach(e => {
+    if ((e['Estatus empleado'] || 'A') !== 'A') return;
+    const udn = e['Departamento'] || 'Sin UDN';
+    const puesto = e['Puesto'] || 'Sin Puesto';
+    const nombre = (e['Nombre'] || '') + ' ' + (e['Apellido paterno'] || '');
+    
+    if (query && !udn.toLowerCase().includes(query) && !puesto.toLowerCase().includes(query) && !nombre.toLowerCase().includes(query)) return;
 
-  filtered.sort((a, b) => {
-    let valA = a[sortState.key];
-    let valB = b[sortState.key];
-    if (typeof valA === 'string') {
-      valA = valA.toLowerCase();
-      valB = valB.toLowerCase();
-    }
-    if (valA < valB) return sortState.dir === 'asc' ? -1 : 1;
-    if (valA > valB) return sortState.dir === 'asc' ? 1 : -1;
-    return 0;
-  });
-
-  document.querySelector('#mainTable tbody').innerHTML = filtered.map(e => `
-    <tr>
-      <td><b>${e.nombre}</b><br><small style="color:var(--muted)">${e.codigo}</small></td>
-      <td>${e.udn}</td>
-      <td>${e.puesto}</td>
-      <td style="font-weight:600">$${Math.round(e.total).toLocaleString()}</td>
-    </tr>
-  `).join('');
-}
-
-function renderAll() {
-  const tTotal = allEmployees.reduce((s,e) => s + e.total, 0);
-  const tComis = allEmployees.reduce((s,e) => s + e.comisiones, 0);
-  document.getElementById('kpi-container').innerHTML = `
-    <div class="kpi-card"><div style="font-size:11px;color:var(--muted)">ACTIVOS</div><div style="font-size:24px;font-weight:600">${allEmployees.length}</div></div>
-    <div class="kpi-card"><div style="font-size:11px;color:var(--muted)">NÓMINA BRUTA</div><div style="font-size:24px;font-weight:600">$${Math.round(tTotal).toLocaleString()}</div></div>
-    <div class="kpi-card"><div style="font-size:11px;color:var(--muted)">COMISIONES</div><div style="font-size:24px;font-weight:600;color:var(--accent2)">$${Math.round(tComis).toLocaleString()}</div></div>
-  `;
-  renderMainTable();
-  renderPivotTable();
-}
-
-function renderPivotTable() {
-  const pf = document.getElementById('puestoFilter').value;
-  const udns = {};
-  allEmployees.forEach(e => {
-    if (pf && e.puesto !== pf) return;
-    if (!udns[e.udn]) udns[e.udn] = { n:0, s:0, c:0, t:0, puestos:{} };
-    udns[e.udn].n++; udns[e.udn].s += e.sueldo; udns[e.udn].c += e.comisiones; udns[e.udn].t += e.total;
-    if (!udns[e.udn].puestos[e.puesto]) udns[e.udn].puestos[e.puesto] = { n:0, s:0, c:0, t:0 };
-    const p = udns[e.udn].puestos[e.puesto];
-    p.n++; p.s += e.sueldo; p.c += e.comisiones; p.t += e.total;
+    if (!tree[udn]) tree[udn] = { n: 0, puestos: {} };
+    tree[udn].n++;
+    if (!tree[udn].puestos[puesto]) tree[udn].puestos[puesto] = 0;
+    tree[udn].puestos[puesto]++;
   });
 
   let html = '';
-  Object.keys(udns).sort().forEach((uName, i) => {
-    const u = udns[uName];
-    const id = `row-${i}`;
-    html += `<tr class="row-udn" onclick="toggle('${id}', this)">
+  Object.keys(tree).sort().forEach((uName, i) => {
+    const u = tree[uName];
+    const id = `empl-${i}`;
+    html += `<tr class="row-master" onclick="toggle('${id}', this)">
       <td><span class="toggle-icon">▶</span> 🏢 ${uName}</td>
-      <td>${u.n}</td><td>$${Math.round(u.s/u.n).toLocaleString()}</td><td>$${Math.round(u.c/u.n).toLocaleString()}</td><td>$${Math.round(u.t).toLocaleString()}</td>
+      <td>${u.n} personas</td>
+      <td>—</td>
     </tr>`;
-    Object.keys(u.puestos).forEach(pName => {
-      const p = u.puestos[pName];
-      html += `<tr class="row-puesto ${id}">
-        <td>${pName}</td><td>${p.n}</td><td>$${Math.round(p.s/p.n).toLocaleString()}</td><td>$${Math.round(p.c/p.n).toLocaleString()}</td><td>$${Math.round(p.t).toLocaleString()}</td>
+    Object.keys(u.puestos).sort().forEach(pName => {
+      html += `<tr class="row-detail ${id}">
+        <td>${pName}</td>
+        <td>${u.puestos[pName]} colaboradores</td>
+        <td>—</td>
       </tr>`;
     });
   });
-  document.getElementById('pivotBody').innerHTML = html;
+  document.getElementById('personalBody').innerHTML = html;
+}
+
+// RENDER TABLA 2: PAGOS (Basado solo en archivo Nómina)
+function renderPagos() {
+  const fConcepto = document.getElementById('conceptoFilter').value;
+  const tree = {};
+
+  dataNomina.forEach(n => {
+    if (fConcepto && n['Concepto'] !== fConcepto) return;
+    
+    // Usamos los campos que vengan en el archivo de nómina
+    const udn = n['Departamento'] || n['CDN'] || 'Sin UDN';
+    const puesto = n['Puesto'] || 'Sin Puesto';
+    const monto = parseFloat((n['Total'] || "0").replace(/[^0-9.-]+/g,"")) || 0;
+
+    if (!tree[udn]) tree[udn] = { n:0, total: 0, puestos: {} };
+    tree[udn].n++;
+    tree[udn].total += monto;
+
+    if (!tree[udn].puestos[puesto]) tree[udn].puestos[puesto] = { n:0, total:0 };
+    tree[udn].puestos[puesto].n++;
+    tree[udn].puestos[puesto].total += monto;
+  });
+
+  let html = '';
+  Object.keys(tree).sort().forEach((uName, i) => {
+    const u = tree[uName];
+    const id = `pago-${i}`;
+    html += `<tr class="row-master" onclick="toggle('${id}', this)">
+      <td><span class="toggle-icon">▶</span> 📁 ${uName}</td>
+      <td>${u.n} registros</td>
+      <td>$${Math.round(u.total/u.n).toLocaleString()}</td>
+      <td style="color:var(--accent2)">$${Math.round(u.total).toLocaleString()}</td>
+    </tr>`;
+    Object.keys(u.puestos).sort().forEach(pName => {
+      const p = u.puestos[pName];
+      html += `<tr class="row-detail ${id}">
+        <td>${pName}</td>
+        <td>${p.n} recubos</td>
+        <td>$${Math.round(p.total/p.n).toLocaleString()}</td>
+        <td>$${Math.round(p.total).toLocaleString()}</td>
+      </tr>`;
+    });
+  });
+  document.getElementById('pagosBody').innerHTML = html;
 }
 
 function toggle(id, el) {
